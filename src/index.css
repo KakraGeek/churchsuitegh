@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ChurchSuite Ghana Brand Colors - Burgundy & Bronze */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%; /* Charcoal */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+    
+    /* Primary: Burgundy - Faith, Strength, Tradition */
+    --primary: 350 75% 25%; /* #800020 */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Secondary: Bronze - Warmth, Tradition, Elegance */
+    --secondary: 32 60% 50%; /* #CD7F32 */
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Neutral tones */
+    --muted: 32 20% 95%; /* Warm light neutral */
+    --muted-foreground: 0 0% 45%;
+    --accent: 32 15% 92%; /* Very light bronze tint */
+    --accent-foreground: 0 0% 20%;
+    
+    /* Status colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 82 39% 30%; /* Olive green */
+    --warning: 32 60% 50%; /* Bronze for warnings */
+    
+    /* UI elements */
+    --border: 32 15% 88%;
+    --input: 32 15% 88%;
+    --ring: 350 75% 25%; /* Burgundy ring */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Dark mode - elegant burgundy & bronze for evening services */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 98%;
+    
+    /* Primary: Lighter burgundy for dark mode */
+    --primary: 350 60% 45%;
+    --primary-foreground: 0 0% 98%;
+    
+    /* Secondary: Muted bronze for dark mode */
+    --secondary: 32 45% 40%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 82 35% 40%; /* Darker olive */
+    --warning: 32 50% 45%; /* Muted bronze */
+    
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 350 60% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

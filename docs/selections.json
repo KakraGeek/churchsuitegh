@@ -1,0 +1,25 @@
+{
+  "track": "App (React + Vite)",
+  "components": {
+    "orm": "Drizzle",
+    "database": "Neon Postgres",
+    "auth": "Clerk",
+    "payments": [
+      "MoMo APIs",
+      "Stripe fallback"
+    ],
+    "deployment": "Vercel",
+    "ui": [
+      "TailwindCSS",
+      "shadcn/ui"
+    ],
+    "testing": [
+      "Vitest",
+      "Playwright"
+    ],
+    "storage": "S3-compatible",
+    "analytics": [
+      "Plausible"
+    ]
+  }
+}

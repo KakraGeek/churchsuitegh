@@ -1,0 +1,15 @@
+{
+  "files": [
+    "docs/prd.md",
+    "docs/planning.md",
+    "docs/phases.md",
+    "docs/god-mode-4-kickstart.md",
+    "smart_prompts/build.md",
+    "smart_prompts/fix.md",
+    "smart_prompts/ship.md",
+    ".cursor/rules.json",
+    "brand/README.md",
+    "brand/brand.config.json"
+  ],
+  "repoNotes": "Generic God-Mode 4 context. Website/App Track toggle supported."
+}

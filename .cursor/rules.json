@@ -1,0 +1,26 @@
+{
+  "enforce": {
+    "process": {
+      "notifyApproveProceed": true,
+      "perFeatureSmoke": true,
+      "unifiedSmokeNightly": true
+    },
+    "quality": {
+      "owaspTop10": true,
+      "errorEnvelope": {
+        "shape": {
+          "ok": "boolean",
+          "data": "optional",
+          "error": "optional"
+        }
+      },
+      "accessibility": {
+        "wcagTarget": "AA"
+      },
+      "performanceBudgets": {
+        "LCP_ms": 2500,
+        "INP_ms": 200
+      }
+    }
+  }
+}

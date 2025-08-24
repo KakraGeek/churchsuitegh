@@ -531,3 +531,129 @@ export type RecurringGiving = typeof recurringGiving.$inferSelect
 export type NewRecurringGiving = typeof recurringGiving.$inferInsert
 export type MoMoPaymentSession = typeof momoPaymentSessions.$inferSelect
 export type NewMoMoPaymentSession = typeof momoPaymentSessions.$inferInsert
+
+// Family Relationships - Connect family members
+export const familyRelationships = pgTable('family_relationships', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  relatedMemberId: uuid('related_member_id').references(() => members.id).notNull(),
+  relationshipType: varchar('relationship_type', { length: 50 }).notNull(), // spouse, parent, child, sibling, guardian
+  isPrimary: boolean('is_primary').default(false), // Primary relationship (e.g., primary parent)
+  startDate: timestamp('start_date'), // When relationship began (e.g., marriage date)
+  endDate: timestamp('end_date'), // When relationship ended (e.g., divorce, death)
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Member Skills & Interests - For ministry placement
+export const memberSkills = pgTable('member_skills', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  skillName: varchar('skill_name', { length: 100 }).notNull(),
+  skillCategory: varchar('skill_category', { length: 50 }).notNull(), // ministry, technical, administrative, creative
+  proficiencyLevel: varchar('proficiency_level', { length: 20 }).default('beginner'), // beginner, intermediate, advanced, expert
+  yearsOfExperience: integer('years_of_experience'),
+  isCertified: boolean('is_certified').default(false),
+  certificationDetails: text('certification_details'),
+  isInterestedIn: boolean('is_interested_in').default(false), // Whether they want to use this skill
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Member Documents - Important files and records
+export const memberDocuments = pgTable('member_documents', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  documentType: varchar('document_type', { length: 50 }).notNull(), // id-card, baptism-cert, membership-form, photo, etc.
+  documentName: varchar('document_name', { length: 200 }).notNull(),
+  filePath: varchar('file_path', { length: 500 }).notNull(),
+  fileSize: integer('file_size'), // File size in bytes
+  mimeType: varchar('mime_type', { length: 100 }),
+  isRequired: boolean('is_required').default(false), // Required for membership
+  isVerified: boolean('is_verified').default(false), // Document has been verified by admin
+  verifiedBy: uuid('verified_by').references(() => members.id),
+  verifiedAt: timestamp('verified_at'),
+  expiryDate: timestamp('expiry_date'), // For documents that expire
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Member Notes & History - Track changes and important information
+export const memberNotes = pgTable('member_notes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  noteType: varchar('note_type', { length: 50 }).notNull(), // general, pastoral, administrative, medical, financial
+  title: varchar('title', { length: 200 }).notNull(),
+  content: text('content').notNull(),
+  isPrivate: boolean('is_private').default(false), // Only visible to admins/pastors
+  isImportant: boolean('is_important').default(false), // Flag for important notes
+  tags: varchar('tags', { length: 500}), // JSON string for note tags
+  createdBy: uuid('created_by').references(() => members.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Member Status History - Track status changes over time
+export const memberStatusHistory = pgTable('member_status_history', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  previousStatus: varchar('previous_status', { length: 20 }).notNull(),
+  newStatus: varchar('new_status', { length: 20 }).notNull(),
+  reason: text('reason'),
+  changedBy: uuid('changed_by').references(() => members.id).notNull(),
+  changedAt: timestamp('changed_at').defaultNow(),
+  notes: text('notes'),
+})
+
+// Member Ministry Involvement - Track ministry participation
+export const memberMinistries = pgTable('member_ministries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  ministryName: varchar('ministry_name', { length: 100 }).notNull(),
+  role: varchar('role', { length: 100 }).notNull(), // Leader, Member, Volunteer, etc.
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'), // Null if currently active
+  isActive: boolean('is_active').default(true),
+  commitmentLevel: varchar('commitment_level', { length: 20 }).default('regular'), // regular, occasional, seasonal
+  hoursPerWeek: integer('hours_per_week'), // Estimated time commitment
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Export schemas for new tables
+export const insertFamilyRelationshipSchema = createInsertSchema(familyRelationships)
+export const selectFamilyRelationshipSchema = createSelectSchema(familyRelationships)
+export type NewFamilyRelationship = typeof familyRelationships.$inferInsert
+export type FamilyRelationship = typeof familyRelationships.$inferSelect
+
+export const insertMemberSkillSchema = createInsertSchema(memberSkills)
+export const selectMemberSkillSchema = createSelectSchema(memberSkills)
+export type NewMemberSkill = typeof memberSkills.$inferInsert
+export type MemberSkill = typeof memberSkills.$inferSelect
+
+export const insertMemberDocumentSchema = createInsertSchema(memberDocuments)
+export const selectMemberDocumentSchema = createSelectSchema(memberDocuments)
+export type NewMemberDocument = typeof memberDocuments.$inferInsert
+export type MemberDocument = typeof memberDocuments.$inferSelect
+
+export const insertMemberNoteSchema = createInsertSchema(memberNotes)
+export const selectMemberNoteSchema = createSelectSchema(memberNotes)
+export type NewMemberNote = typeof memberNotes.$inferInsert
+export type MemberNote = typeof memberNotes.$inferSelect
+
+export const insertMemberStatusHistorySchema = createInsertSchema(memberStatusHistory)
+export const selectMemberStatusHistorySchema = createSelectSchema(memberStatusHistory)
+export type NewMemberStatusHistory = typeof memberStatusHistory.$inferInsert
+export type MemberStatusHistory = typeof memberStatusHistory.$inferSelect
+
+export const insertMemberMinistrySchema = createInsertSchema(memberMinistries)
+export const selectMemberMinistrySchema = createSelectSchema(memberMinistries)
+export type NewMemberMinistry = typeof memberMinistries.$inferInsert
+export type MemberMinistry = typeof memberMinistries.$inferSelect

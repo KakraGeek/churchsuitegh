@@ -295,6 +295,7 @@ export const churchIcons = {
   leader: UserCheck,
   member: User,
   visitor: UserPlus,
+  userPlus: UserPlus,
   
   // Member status
   active: CheckCircle,

@@ -51,7 +51,7 @@ export default function Notifications() {
           setMember(memberResult.data)
           await loadNotificationData(memberResult.data.id)
         } else {
-          setError(memberResult.error || 'Failed to load member profile')
+          setError('Failed to load member profile')
           setLoading(false)
         }
       } catch (error) {

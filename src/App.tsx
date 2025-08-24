@@ -2,7 +2,7 @@ import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/cle
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { clerkConfig } from '@/lib/clerk'
 import { Dashboard } from '@/pages/Dashboard'
-import { Members } from '@/pages/Members'
+import Members from '@/pages/Members'
 import Events from '@/pages/Events'
 import Attendance from '@/pages/Attendance'
 import CheckIn from '@/pages/CheckIn'

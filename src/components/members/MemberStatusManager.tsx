@@ -56,8 +56,8 @@ export function MemberStatusManager({ member, onStatusChange, className }: Membe
       const result = await updateMemberStatus(
         member.id,
         newStatus as 'active' | 'inactive' | 'transferred' | 'suspended' | 'deceased' | 'visitor',
-        statusReason || undefined,
-        user?.id
+        user?.id || '',
+        statusReason || undefined
       )
 
       if (result.ok && result.data) {
@@ -65,7 +65,7 @@ export function MemberStatusManager({ member, onStatusChange, className }: Membe
         setShowForm(false)
         setStatusReason('')
       } else {
-        setError(result.error || 'Failed to update member status')
+        setError('Failed to update member status')
       }
     } catch (err) {
       setError('An unexpected error occurred')

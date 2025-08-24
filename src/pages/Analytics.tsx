@@ -27,7 +27,7 @@ import {
   ResponsiveContainer 
 } from 'recharts'
 import { getAttendanceByDate } from '@/lib/api/attendance'
-import { getMemberStats } from '@/lib/api/members'
+import { getMemberStatistics } from '@/lib/api/members'
 import { getEventStats } from '@/lib/api/events'
 
 
@@ -94,7 +94,7 @@ export default function Analytics() {
       // Fetch all data
       const [attendanceResult, memberStatsResult] = await Promise.all([
         getAttendanceByDate(startDate, now),
-        getMemberStats(),
+        getMemberStatistics(),
         getEventStats()
       ])
 
@@ -141,9 +141,8 @@ export default function Analytics() {
       // Process member engagement
       const memberEngagement = [
         { status: 'Active Members', count: memberStats.activeMembers, percentage: 0 },
-        { status: 'New This Month', count: memberStats.newThisMonth, percentage: 0 },
-        { status: 'Leaders', count: (memberStats.membersByRole.pastor || 0) + (memberStats.membersByRole.leader || 0), percentage: 0 },
-        { status: 'Visitors', count: memberStats.membersByRole.visitor || 0, percentage: 0 }
+        { status: 'Leaders', count: (memberStats.roleBreakdown.find(r => r.role === 'pastor')?.count || 0) + (memberStats.roleBreakdown.find(r => r.role === 'leader')?.count || 0), percentage: 0 },
+        { status: 'Visitors', count: memberStats.roleBreakdown.find(r => r.role === 'visitor')?.count || 0, percentage: 0 }
       ].map(item => ({
         ...item,
         percentage: memberStats.totalMembers > 0 ? Math.round((item.count / memberStats.totalMembers) * 100) : 0
@@ -159,7 +158,7 @@ export default function Analytics() {
       // Growth metrics
       const growthMetrics = {
         totalMembers: memberStats.totalMembers,
-        monthlyGrowth: memberStats.newThisMonth,
+        monthlyGrowth: 0, // Not available in new API
         attendanceGrowth: attendanceRecords.length,
         activeMembers: memberStats.activeMembers
       }

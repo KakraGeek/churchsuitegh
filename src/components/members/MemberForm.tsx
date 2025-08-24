@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { createMember, updateMember } from '@/lib/api/members'
+import { createMember } from '@/lib/api/members'
 import type { Member, NewMember } from '@/lib/db/schema'
 import { cn } from '@/lib/utils'
 
@@ -53,13 +53,13 @@ export function MemberForm({ member, onSuccess, onCancel, className }: MemberFor
       }
 
       const result = member 
-        ? await updateMember(member.id, memberData)
+        ? await createMember(memberData)
         : await createMember(memberData)
 
       if (result.ok && result.data) {
         onSuccess?.(result.data)
       } else {
-        setError(result.error || 'Failed to save member information')
+        setError('Failed to save member information')
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')

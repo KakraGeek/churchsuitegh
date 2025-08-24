@@ -6,7 +6,7 @@ import { churchIcons } from '@/lib/icons'
 import { useUser } from '@clerk/clerk-react'
 import { getUserRole } from '@/lib/clerk'
 import { useNavigate } from 'react-router-dom'
-import { getMemberStats } from '@/lib/api/members'
+import { getMemberStatistics } from '@/lib/api/members'
 import { getUpcomingEvents } from '@/lib/api/events'
 import type { ChurchEvent } from '@/lib/db/schema'
 
@@ -48,12 +48,22 @@ export function Dashboard() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const result = await getMemberStats()
+        const result = await getMemberStatistics()
         if (result.ok && result.data) {
-          setMemberStats(result.data)
+          // Transform the data to match expected structure
+          const transformedData = {
+            totalMembers: result.data.totalMembers,
+            newThisMonth: 0, // Not available in new API
+            activeMembers: result.data.activeMembers,
+            membersByRole: result.data.roleBreakdown.reduce((acc, item) => {
+              if (item.role) acc[item.role] = item.count
+              return acc
+            }, {} as Record<string, number>)
+          }
+          setMemberStats(transformedData)
           setError(null)
         } else {
-          setError(result.error || 'Failed to load statistics')
+          setError('Failed to load statistics')
         }
       } catch (err) {
         console.error('Error loading member stats:', err)

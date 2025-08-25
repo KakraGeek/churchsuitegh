@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 import { PWAStatus } from '@/components/PWAStatus'
 import { PWAUpdateNotification } from '@/components/PWAUpdateNotification'
+import { PWASmokeTest } from '@/components/PWASmokeTest'
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -199,6 +200,7 @@ export function LandingPage() {
       {/* PWA Components for Landing Page */}
       <PWAInstallPrompt />
       <PWAUpdateNotification />
+      <PWASmokeTest />
     </div>
   )
 }

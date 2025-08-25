@@ -15,6 +15,23 @@ export function LandingPage() {
     console.log('LandingPage: Viewport width:', window.innerWidth)
     console.log('LandingPage: User agent:', navigator.userAgent)
 
+    // Check if PWA can be installed
+    const checkPWACriteria = () => {
+      const hasManifest = !!document.querySelector('link[rel="manifest"]')
+      const isHTTPS = window.location.protocol === 'https:'
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      
+      console.log('PWA: Checking criteria:', { hasManifest, isHTTPS, isStandalone })
+      
+      if (hasManifest && isHTTPS && !isStandalone) {
+        console.log('PWA: Criteria met, showing install button')
+        setShowInstallButton(true)
+      } else {
+        console.log('PWA: Criteria not met or already installed')
+        setShowInstallButton(false)
+      }
+    }
+
     // Listen for the beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log('PWA: beforeinstallprompt event fired')
@@ -22,7 +39,7 @@ export function LandingPage() {
       e.preventDefault()
       // Stash the event so it can be triggered later
       setDeferredPrompt(e)
-      // Show the install button
+      // Show the install button (in case it wasn't already shown)
       setShowInstallButton(true)
     }
 
@@ -33,21 +50,12 @@ export function LandingPage() {
       setDeferredPrompt(null)
     }
 
-    // Check if already installed
-    const checkIfInstalled = () => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      if (isStandalone) {
-        console.log('PWA: App is already installed')
-        setShowInstallButton(false)
-      }
-    }
+    // Check PWA criteria immediately
+    checkPWACriteria()
 
     // Add event listeners
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     window.addEventListener('appinstalled', handleAppInstalled)
-
-    // Check if already installed
-    checkIfInstalled()
 
     // Cleanup
     return () => {

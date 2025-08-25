@@ -46,9 +46,9 @@ export default function Communications() {
   const [notificationForm, setNotificationForm] = useState({
     title: '',
     content: '',
-    category: 'general' as const,
-    priority: 'normal' as const,
-    targetType: 'all' as const,
+    category: 'general' as "general" | "announcement" | "event" | "reminder" | "welcome" | "emergency",
+    priority: 'normal' as "low" | "normal" | "high" | "urgent",
+    targetType: 'all' as "all" | "role" | "individual",
     icon: '',
     color: '',
     actionType: 'none' as const,
@@ -226,7 +226,7 @@ export default function Communications() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
-                    <Select value={notificationForm.category} onValueChange={(value: any) => setNotificationForm(prev => ({ ...prev, category: value }))}>
+                    <Select value={notificationForm.category} onValueChange={(value: string) => setNotificationForm(prev => ({ ...prev, category: value as "general" | "announcement" | "event" | "reminder" | "welcome" | "emergency" }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -257,7 +257,7 @@ export default function Communications() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="priority">Priority</Label>
-                    <Select value={notificationForm.priority} onValueChange={(value: any) => setNotificationForm(prev => ({ ...prev, priority: value }))}>
+                    <Select value={notificationForm.priority} onValueChange={(value: string) => setNotificationForm(prev => ({ ...prev, priority: value as "low" | "normal" | "high" | "urgent" }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -271,7 +271,7 @@ export default function Communications() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="targetType">Send To</Label>
-                    <Select value={notificationForm.targetType} onValueChange={(value: any) => setNotificationForm(prev => ({ ...prev, targetType: value }))}>
+                    <Select value={notificationForm.targetType} onValueChange={(value: string) => setNotificationForm(prev => ({ ...prev, targetType: value as "all" | "role" | "individual" }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -604,22 +604,22 @@ export default function Communications() {
                             <p className="text-sm text-gray-700">{template.content}</p>
                           </div>
                           <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => {
-                                setNotificationForm(prev => ({
-                                  ...prev,
-                                  title: template.title,
-                                  content: template.content,
-                                  category: template.category as any,
-                                  priority: template.priority as any,
-                                  icon: template.icon || '',
-                                  color: template.color || ''
-                                }))
-                                setShowComposer(true)
-                              }}
-                            >
+                                                          <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setNotificationForm(prev => ({
+                                    ...prev,
+                                    title: template.title,
+                                    content: template.content,
+                                    category: template.category as "general" | "announcement" | "event" | "reminder" | "welcome" | "emergency",
+                                    priority: template.priority as "low" | "normal" | "high" | "urgent",
+                                    icon: template.icon || '',
+                                    color: template.color || ''
+                                  }))
+                                  setShowComposer(true)
+                                }}
+                              >
                               <churchIcons.copy className="h-4 w-4 mr-2" />
                               Use Template
                             </Button>
@@ -630,8 +630,8 @@ export default function Communications() {
                                   ...prev,
                                   title: template.title,
                                   content: template.content,
-                                  category: template.category as any,
-                                  priority: template.priority as any,
+                                  category: template.category as "general" | "announcement" | "event" | "reminder" | "welcome" | "emergency",
+                                  priority: template.priority as "low" | "normal" | "high" | "urgent",
                                   icon: template.icon || '',
                                   color: template.color || ''
                                 }))

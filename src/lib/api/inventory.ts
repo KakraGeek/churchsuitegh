@@ -7,22 +7,18 @@ import {
   inventoryCategories, 
   borrowingRecords, 
   inventoryMaintenance,
-  inventoryAudit,
-  members,
-  ministryTeams
+  members
 } from '@/lib/db/schema'
-import { eq, and, desc, sql, gte, lte, asc, isNull, isNotNull, count, sum } from 'drizzle-orm'
+import { eq, and, desc, sql, lte, asc, isNotNull, sum, count } from 'drizzle-orm'
 import type { 
   NewInventoryItem, 
   NewInventoryCategory, 
   NewBorrowingRecord, 
   NewInventoryMaintenance,
-  NewInventoryAudit,
   InventoryItem,
   InventoryCategory,
   BorrowingRecord,
-  InventoryMaintenance,
-  InventoryAudit
+  InventoryMaintenance
 } from '@/lib/db/schema'
 
 // === API RESPONSE TYPES ===
@@ -415,7 +411,25 @@ export async function getMaintenanceRecordsByItem(itemId: string): Promise<ApiRe
 
 // === INVENTORY ANALYTICS ===
 
-export async function getInventoryAnalytics(): Promise<ApiResponse<any>> {
+interface InventoryAnalyticsData {
+  totalItems: number
+  availableItems: number
+  borrowedItems: number
+  overdueItems: number
+  totalValue: number
+  categoryBreakdown: Array<{ category: string; count: number }>
+  conditionBreakdown: Array<{ condition: string | null; count: number }>
+  recentBorrowings: Array<{
+    id: string
+    itemName: string
+    borrowerName: string
+    borrowedAt: Date
+    expectedReturnDate: Date
+    status: string
+  }>
+}
+
+export async function getInventoryAnalytics(): Promise<ApiResponse<InventoryAnalyticsData>> {
   try {
     // Total items
     const [totalItemsResult] = await db
@@ -472,7 +486,7 @@ export async function getInventoryAnalytics(): Promise<ApiResponse<any>> {
       .select({
         id: borrowingRecords.id,
         itemName: inventoryItems.itemName,
-        borrowerName: sql<string>`CONCAT(${members.firstName}, ' ', ${members.lastName})`,
+        borrowerName: sql`CONCAT(${members.firstName}, ' ', ${members.lastName})`,
         borrowedAt: borrowingRecords.borrowedAt,
         expectedReturnDate: borrowingRecords.expectedReturnDate,
         status: borrowingRecords.status
@@ -500,7 +514,11 @@ export async function getInventoryAnalytics(): Promise<ApiResponse<any>> {
       totalValue: totalValueResult?.totalValue ? Number(totalValueResult.totalValue) : 0,
       categoryBreakdown,
       conditionBreakdown,
-      recentBorrowings
+      recentBorrowings: recentBorrowings.map(borrowing => ({
+        ...borrowing,
+        borrowerName: borrowing.borrowerName as string,
+        status: borrowing.status || 'unknown'
+      }))
     }
 
     return createSuccessResponse(analytics)

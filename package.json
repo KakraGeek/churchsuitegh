@@ -19,6 +19,11 @@
     "db:push": "drizzle-kit push:pg",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed-members.ts",
+    "db:seed-test-users": "tsx scripts/seed-test-users.ts",
+    "db:verify-test-users": "tsx scripts/verify-test-users.ts",
+    "db:fix-test-user-ids": "tsx scripts/fix-test-user-ids.ts",
+    "db:check-all-members": "tsx scripts/check-all-members.ts",
+    "db:fix-mockadmin-only": "tsx scripts/fix-mockadmin-only.ts",
     "db:seed-events": "tsx scripts/seed-events.ts",
     "db:seed-inventory": "tsx scripts/seed-inventory.ts",
     "db:seed-sunday-service": "tsx scripts/seed-sunday-service.ts"
@@ -51,6 +56,7 @@
     "react-router-dom": "^6.20.1",
     "recharts": "^3.1.2",
     "tailwind-merge": "^2.0.0",
+    "workbox-window": "^7.3.0",
     "xlsx": "^0.18.5",
     "zod": "^3.22.4"
   },
@@ -80,7 +86,7 @@
     "tsx": "^4.20.5",
     "typescript": "~5.5.4",
     "vite": "^5.0.0",
-    "vite-plugin-pwa": "^0.17.4",
+    "vite-plugin-pwa": "^0.17.5",
     "vitest": "^1.0.4"
   }
 }

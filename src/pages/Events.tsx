@@ -31,6 +31,7 @@ export default function Events() {
   const [stats, setStats] = useState<EventStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<string>('')
   
   // UI State
   const [searchQuery, setSearchQuery] = useState('')
@@ -43,16 +44,21 @@ export default function Events() {
   const [showEventDetails, setShowEventDetails] = useState(false)
   
   // User permissions
-  const userRole = getUserRole(user?.publicMetadata || {})
   const canManageEvents = userRole === 'admin' || userRole === 'pastor' || userRole === 'leader'
   
-  // Debug: Log user information to console
-  console.log('Events Debug:', {
-    user: user?.id,
-    publicMetadata: user?.publicMetadata,
-    userRole,
-    canManageEvents
-  })
+  // Load user role
+  useEffect(() => {
+    if (user?.publicMetadata) {
+      const role = getUserRole(user.publicMetadata)
+      setUserRole(role)
+      console.log('Events Debug:', {
+        user: user?.id,
+        publicMetadata: user?.publicMetadata,
+        userRole: role,
+        canManageEvents: role === 'admin' || role === 'pastor' || role === 'leader'
+      })
+    }
+  }, [user])
 
   const loadEvents = useCallback(async () => {
     setLoading(true)

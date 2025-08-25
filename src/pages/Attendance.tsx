@@ -185,7 +185,7 @@ export default function Attendance() {
       
       const qrData: NewAttendanceQRCode = {
         qrCodeId: `QR-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        serviceType: qrFormData.serviceType as any,
+        serviceType: qrFormData.serviceType as "sunday-service" | "midweek-service" | "bible-study" | "prayer-meeting" | "special-event" | "outreach" | "fellowship" | "conference",
         eventId: qrFormData.eventId && qrFormData.eventId !== 'none' ? qrFormData.eventId : undefined,
         serviceDate: new Date(qrFormData.serviceDate),
         location: qrFormData.location || undefined,
@@ -576,7 +576,7 @@ export default function Attendance() {
                           <div className="flex items-center justify-between">
                             <Badge>{formatServiceType(qrCode.serviceType)}</Badge>
                             <div className="flex items-center gap-2">
-                              {(qrCode as any).displayOnScreens && (
+                              {qrCode.displayOnScreens && (
                                 <Badge variant="secondary" className="text-xs">
                                   <churchIcons.qrcode className="h-3 w-3 mr-1" />
                                   On Display
@@ -611,11 +611,11 @@ export default function Attendance() {
                                 <span className="text-sm font-medium">Church Displays:</span>
                                 <Button
                                   size="sm"
-                                  variant={(qrCode as any).displayOnScreens ? "default" : "outline"}
-                                  onClick={() => handleToggleDisplay(qrCode.qrCodeId, (qrCode as any).displayOnScreens || false)}
+                                  variant={qrCode.displayOnScreens ? "default" : "outline"}
+                                  onClick={() => handleToggleDisplay(qrCode.qrCodeId, qrCode.displayOnScreens || false)}
                                   className="h-7 text-xs"
                                 >
-                                  {(qrCode as any).displayOnScreens ? (
+                                  {qrCode.displayOnScreens ? (
                                     <>
                                       <churchIcons.check className="h-3 w-3 mr-1" />
                                       Displayed
@@ -629,7 +629,7 @@ export default function Attendance() {
                                 </Button>
                               </div>
                               
-                              {(qrCode as any).displayOnScreens && (
+                              {qrCode.displayOnScreens && (
                                 <div className="text-xs text-muted-foreground bg-green-50 p-2 rounded">
                                   <div className="flex items-center gap-1">
                                     <churchIcons.check className="h-3 w-3 text-green-600" />

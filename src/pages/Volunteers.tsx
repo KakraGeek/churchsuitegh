@@ -23,11 +23,21 @@ import type {
   ServiceSchedule
 } from '@/lib/db/schema'
 
+interface VolunteerAnalytics {
+  totalVolunteers: number
+  activeVolunteers: number
+  totalTeams: number
+  upcomingServices: number
+  volunteerUtilization: number
+  skillDistribution: Array<{ skill: string; count: number }>
+  trainingCompletion: Array<{ program: string; completed: number; required: number }>
+}
+
 interface VolunteerData {
   teams: MinistryTeam[]
   teamMembers: Record<string, TeamMember[]>
   schedules: ServiceSchedule[]
-  analytics?: any
+  analytics?: VolunteerAnalytics
 }
 
 export default function Volunteers() {
@@ -448,7 +458,7 @@ export default function Volunteers() {
               <CardContent>
                 {volunteerData.analytics?.skillDistribution ? (
                   <div className="space-y-3">
-                    {volunteerData.analytics.skillDistribution.map((skill: any, index: number) => (
+                    {volunteerData.analytics.skillDistribution.map((skill, index: number) => (
                       <div key={index} className="flex items-center justify-between">
                         <span className="text-sm font-medium">{skill.skill}</span>
                         <Badge variant="secondary">{skill.count}</Badge>
@@ -469,7 +479,7 @@ export default function Volunteers() {
               <CardContent>
                 {volunteerData.analytics?.trainingCompletion ? (
                   <div className="space-y-3">
-                    {volunteerData.analytics.trainingCompletion.map((training: any, index: number) => (
+                    {volunteerData.analytics.trainingCompletion.map((training, index: number) => (
                       <div key={index} className="flex items-center justify-between">
                         <span className="text-sm font-medium">{training.program}</span>
                         <Badge variant="outline">

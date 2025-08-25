@@ -386,7 +386,7 @@ export async function getServiceAssignments(scheduleId: string): Promise<ApiResp
 export async function updateAssignmentStatus(assignmentId: string, status: string, notes?: string): Promise<ApiResponse<ServiceAssignment>> {
   try {
     const updates: Partial<NewServiceAssignment> = { 
-      status: status as any,
+      status: status,
       updatedAt: new Date()
     }
 

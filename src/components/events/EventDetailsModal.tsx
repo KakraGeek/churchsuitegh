@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import {
   Dialog,
@@ -27,23 +27,15 @@ export function EventDetailsModal({ event, open, onOpenChange }: EventDetailsMod
   const userRole = getUserRole(user?.publicMetadata || {})
   const isAdmin = userRole === 'admin' || userRole === 'pastor' || userRole === 'leader'
 
+  const [registrations, setRegistrations] = useState<(EventRegistration & { member: Member })[]>([])
   const [registrationStats, setRegistrationStats] = useState<{
     totalRegistered: number
     totalWaitlisted: number
     availableSpots: number | null
     maxAttendees: number | null
   } | null>(null)
-  
-  const [registrations, setRegistrations] = useState<(EventRegistration & { member: Member })[]>([])
 
-
-  useEffect(() => {
-    if (event?.requiresRegistration && open) {
-      loadRegistrationData()
-    }
-  }, [event?.id, event?.requiresRegistration, open])
-
-  const loadRegistrationData = async () => {
+  const loadRegistrationData = useCallback(async () => {
     if (!event) return
     
 
@@ -63,7 +55,13 @@ export function EventDetailsModal({ event, open, onOpenChange }: EventDetailsMod
     } catch (error) {
       console.error('Error loading registration data:', error)
     }
-  }
+  }, [event, isAdmin])
+
+  useEffect(() => {
+    if (event?.requiresRegistration && open) {
+      loadRegistrationData()
+    }
+  }, [event?.id, event?.requiresRegistration, open, loadRegistrationData])
 
   if (!event) return null
 

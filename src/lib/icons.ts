@@ -149,6 +149,7 @@ import {
   HeartHandshake,
   BookOpen,
   Wine,
+  Printer,
 } from 'lucide-react'
 
 // Export all icons
@@ -295,6 +296,7 @@ export {
   HeartHandshake,
   BookOpen,
   Wine,
+  Printer,
 }
 
 // Custom icon variants for church-specific use cases
@@ -421,6 +423,7 @@ export const churchIcons = {
   star: Star,
   building: BuildingIcon,
   dollarSign: DollarSign,
+  creditCard: CreditCard,
   
   // Volunteer & Team Management
   volunteers: Users,
@@ -460,6 +463,11 @@ export const churchIcons = {
   offering: Gift,
   benediction: HeartHandshake,
   sundayService: Calendar,
+  
+  // Additional icons needed for SundayService
+  document: FileText,
+  print: Printer,
+  arrowRight: ArrowRight,
 } as const
 
 export type ChurchIcon = keyof typeof churchIcons

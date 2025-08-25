@@ -5,10 +5,9 @@ import { db } from '@/lib/db'
 import { 
   sundayServicePrograms, 
   serviceSongs, 
-  serviceProgramSections,
-  members 
+  serviceProgramSections
 } from '@/lib/db/schema'
-import { eq, and, desc, asc, gte, lte, isNull, isNotNull, count, sql } from 'drizzle-orm'
+import { eq, and, desc, asc, gte } from 'drizzle-orm'
 import type { 
   NewSundayServiceProgram, 
   NewServiceSong, 
@@ -80,7 +79,7 @@ export async function getSundayServiceProgram(programId: string): Promise<ApiRes
   }
 }
 
-export async function getSundayServiceProgramByDate(serviceDate: Date): Promise<ApiResponse<SundayServiceProgram>> {
+export async function getSundayServiceProgramByDate(serviceDate: string): Promise<ApiResponse<SundayServiceProgram>> {
   try {
     const [program] = await db
       .select()
@@ -116,8 +115,7 @@ export async function getAllSundayServicePrograms(): Promise<ApiResponse<SundayS
 
 export async function getUpcomingSundayServicePrograms(): Promise<ApiResponse<SundayServiceProgram[]>> {
   try {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date().toISOString().split('T')[0] // Convert to YYYY-MM-DD string
 
     const programs = await db
       .select()
@@ -362,11 +360,11 @@ export async function getCompleteServiceProgram(programId: string): Promise<ApiR
   }
 }
 
-export async function getCompleteServiceProgramByDate(serviceDate: Date): Promise<ApiResponse<CompleteServiceProgram>> {
+export async function getCompleteServiceProgramByDate(serviceDate: string): Promise<ApiResponse<CompleteServiceProgram>> {
   try {
     const programResult = await getSundayServiceProgramByDate(serviceDate)
     if (!programResult.ok) {
-      return programResult
+      return createErrorResponse(programResult.error || 'Failed to fetch service program by date')
     }
 
     const program = programResult.data!

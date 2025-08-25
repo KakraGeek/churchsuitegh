@@ -31,7 +31,7 @@ const DropdownMenu = ({ children }: DropdownMenuProps) => {
     <div className="relative inline-block text-left">
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child, { open, setOpen } as any)
+          return React.cloneElement(child, { open, setOpen } as { open: boolean; setOpen: (open: boolean) => void })
         }
         return child
       })}

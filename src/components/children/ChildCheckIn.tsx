@@ -47,7 +47,7 @@ export function ChildCheckIn({ onCheckInSuccess, onCheckOutSuccess }: ChildCheck
         text: 'Failed to validate QR code'
       })
     } finally {
-      
+      // Cleanup completed
     }
   }
 

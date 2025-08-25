@@ -1,15 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useUser } from '@clerk/clerk-react'
-import { Badge } from '@/components/ui/badge'
 import { getUnreadNotificationCount } from '@/lib/api/notifications'
 import { getMemberByClerkId } from '@/lib/api/members'
 
-interface NotificationBadgeProps {
-  className?: string
-  showZero?: boolean
-}
-
-export function NotificationBadge({ className = '', showZero = false }: NotificationBadgeProps) {
+export function useUnreadNotificationCount() {
   const { user } = useUser()
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -22,7 +16,6 @@ export function NotificationBadge({ className = '', showZero = false }: Notifica
       }
 
       try {
-        // Get member ID from Clerk user
         const memberResult = await getMemberByClerkId(user.id)
         if (memberResult.ok && memberResult.data) {
           const countResult = await getUnreadNotificationCount(memberResult.data.id)
@@ -49,17 +42,5 @@ export function NotificationBadge({ className = '', showZero = false }: Notifica
     return () => clearInterval(interval)
   }, [user])
 
-  if (loading || (!showZero && unreadCount === 0)) {
-    return null
-  }
-
-  return (
-    <Badge 
-      className={`bg-red-500 text-white text-xs px-1.5 py-0.5 min-w-[1.25rem] h-5 flex items-center justify-center ${className}`}
-    >
-      {unreadCount > 99 ? '99+' : unreadCount}
-    </Badge>
-  )
+  return { unreadCount, loading }
 }
-
-

@@ -1,4 +1,4 @@
-import { Spinner } from '@/lib/icons'
+import { churchIcons } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
 interface LoadingSpinnerProps {
@@ -15,7 +15,7 @@ export function LoadingSpinner({ className, size = 'md' }: LoadingSpinnerProps) 
 
   return (
     <div className="flex items-center justify-center">
-      <Spinner className={cn('animate-spin', sizeClasses[size], className)} />
+      <churchIcons.spinner className={cn('animate-spin', sizeClasses[size], className)} />
     </div>
   )
 }

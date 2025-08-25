@@ -9,7 +9,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:react-hooks/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', '*.config.ts', 'src/test/*', 'e2e/*', 'scripts/*'],
+  ignorePatterns: ['dist', '.eslintrc.cjs', '*.config.ts', 'src/test/*', 'e2e/*', 'scripts/*', 'drizzle/*'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: './tsconfig.json',

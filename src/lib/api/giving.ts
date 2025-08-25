@@ -494,7 +494,17 @@ export const initiateMoMoPayment = async (
   }
 }
 
-export const processMoMoPayment = async (sessionId: string, momoResponse: any) => {
+interface MoMoPaymentResponse {
+  status: string
+  message: string
+  transactionId?: string
+  amount?: number
+  currency?: string
+  phoneNumber?: string
+  reference?: string
+}
+
+export const processMoMoPayment = async (sessionId: string, momoResponse: MoMoPaymentResponse) => {
   try {
     if (process.env.VITE_DATABASE_URL === 'mock') {
       return createSuccessResponse({ message: 'Payment processed successfully' })

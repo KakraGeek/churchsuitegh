@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
@@ -90,7 +90,7 @@ export default function Analytics() {
   const [exporting, setExporting] = useState(false)
 
   // Colors for charts
-  const serviceColors = {
+  const serviceColors = useMemo(() => ({
     'sunday-service': '#8B5CF6',
     'midweek-service': '#06B6D4', 
     'bible-study': '#10B981',
@@ -99,10 +99,10 @@ export default function Analytics() {
     'outreach': '#6366F1',
     'fellowship': '#EC4899',
     'conference': '#84CC16'
-  }
+  }), [])
 
   // Load analytics data
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -212,7 +212,7 @@ export default function Analytics() {
         memberEngagement,
         eventPerformance,
         growthMetrics,
-        childrenAnalytics: childrenAnalyticsResult.ok ? childrenAnalyticsResult.data as any : undefined,
+        childrenAnalytics: childrenAnalyticsResult.ok ? childrenAnalyticsResult.data : undefined,
         volunteerAnalytics: volunteerAnalyticsResult.ok ? volunteerAnalyticsResult.data : undefined
       })
 
@@ -226,7 +226,7 @@ export default function Analytics() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [dateRange, serviceColors])
 
   useEffect(() => {
     if (canViewAnalytics) {
@@ -235,7 +235,7 @@ export default function Analytics() {
       setLoading(false)
       setError('You do not have permission to view analytics')
     }
-  }, [canViewAnalytics, dateRange])
+  }, [canViewAnalytics, dateRange, loadAnalyticsData])
 
   const formatPercentage = (value: number, total: number) => {
     return total > 0 ? `${Math.round((value / total) * 100)}%` : '0%'

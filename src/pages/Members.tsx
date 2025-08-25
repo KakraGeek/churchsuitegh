@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -54,7 +54,7 @@ export default function Members() {
     dateOfBirth: '',
     address: '',
     emergencyContact: '',
-    role: 'member' as const,
+    role: 'member' as string,
     department: '',
     notes: ''
   })
@@ -63,21 +63,13 @@ export default function Members() {
   const [newStatus, setNewStatus] = useState('active')
   const [statusReason, setStatusReason] = useState('')
 
-  useEffect(() => {
+  const loadUserRole = useCallback(async () => {
     if (user) {
-      loadUserRole()
-      loadMembers()
-      loadStats()
-    }
-  }, [user])
-
-  const loadUserRole = async () => {
-    if (user) {
-      const role = await getUserRole(user.id as any)
+      const role = await getUserRole(user.publicMetadata || {})
       console.log('User role loaded:', role, 'User:', user)
       setUserRole(role)
     }
-  }
+  }, [user])
 
   const loadMembers = async () => {
     try {
@@ -103,6 +95,50 @@ export default function Members() {
     } catch (error) {
       console.error('Error loading stats:', error)
     }
+  }
+
+  useEffect(() => {
+    loadUserRole()
+  }, [loadUserRole])
+
+  useEffect(() => {
+    if (userRole === 'admin') {
+      loadMembers()
+      loadStats()
+    }
+  }, [userRole])
+
+  // Access Control Check
+  if (userRole && userRole !== 'admin') {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card className="max-w-md mx-auto">
+          <CardContent className="p-8 text-center">
+            <div className="mb-4">
+              <churchIcons.admin className="h-16 w-16 text-red-500 mx-auto" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+            <p className="text-gray-600 mb-4">Admins Only!</p>
+            <p className="text-sm text-gray-500">
+              Member management is restricted to administrators only. 
+              Please contact your church administrator if you need access.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show loading while checking user role
+  if (!userRole) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600">Checking permissions...</span>
+        </div>
+      </div>
+    )
   }
 
   const handleSearch = () => {
@@ -167,7 +203,7 @@ export default function Members() {
         clerkUserId: user?.id || '',
         membershipDate: new Date(),
         status: 'active' as const,
-        role: memberForm.role,
+        role: memberForm.role as "admin" | "pastor" | "leader" | "member" | "visitor" | null,
         dateOfBirth: memberForm.dateOfBirth ? new Date(memberForm.dateOfBirth) : null,
       }
 
@@ -312,7 +348,7 @@ export default function Members() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <churchIcons.barChart className="h-5 w-5 text-purple-600" />
+                  <churchIcons.chart className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Departments</p>
@@ -701,7 +737,7 @@ export default function Members() {
               </div>
               <div>
                 <Label htmlFor="role">Role</Label>
-                <Select value={memberForm.role} onValueChange={(value: any) => setMemberForm(prev => ({ ...prev, role: value }))}>
+                <Select value={memberForm.role} onValueChange={(value: string) => setMemberForm(prev => ({ ...prev, role: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

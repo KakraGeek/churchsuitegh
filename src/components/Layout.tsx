@@ -1,8 +1,11 @@
-import { UserButton, useUser } from '@clerk/clerk-react'
+import { UserButton, useUser, useClerk } from '@clerk/clerk-react'
 import { Button } from '@/components/ui/button'
-import { Menu, Users, Calendar, DollarSign, Home } from '@/lib/icons'
+import { Menu, Users, Calendar, DollarSign, Home, X } from '@/lib/icons'
 import { churchIcons } from '@/lib/icons'
 import { NotificationBadge } from '@/components/NotificationBadge'
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
+import { PWAUpdateNotification } from '@/components/PWAUpdateNotification'
+import { PWAStatus } from '@/components/PWAStatus'
 import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Link } from 'react-router-dom'
@@ -15,6 +18,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const { user } = useUser()
+  const { signOut } = useClerk()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
 
@@ -34,6 +38,10 @@ export function Layout({ children }: LayoutProps) {
 
   const userRole = getUserRole(user?.publicMetadata || {})
   const canManageVolunteers = userRole === 'admin' || userRole === 'pastor' || userRole === 'leader'
+
+  const handleSignOut = () => {
+    signOut()
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -111,8 +119,23 @@ export function Layout({ children }: LayoutProps) {
             className="fixed inset-0 bg-background/80 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-card px-6 py-6 sm:max-w-sm">
-            <nav className="mt-6">
+                   <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-card px-6 py-6 sm:max-w-sm">
+           {/* Close button */}
+           <div className="flex items-center justify-between mb-6">
+             <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+             <Button
+               type="button"
+               variant="ghost"
+               size="sm"
+               className="text-gray-500 hover:text-gray-700"
+               onClick={() => setSidebarOpen(false)}
+             >
+               <span className="sr-only">Close sidebar</span>
+               <X className="h-5 w-5" />
+             </Button>
+           </div>
+           
+           <nav className="mt-6">
               <ul role="list" className="space-y-1">
                 {navigation.map((item) => (
                   <li key={item.name}>
@@ -129,11 +152,104 @@ export function Layout({ children }: LayoutProps) {
                     </a>
                   </li>
                 ))}
+                
+                {/* Additional navigation items for mobile */}
+                {canManageVolunteers && (
+                  <li>
+                    <a
+                      href="/volunteers"
+                      className="group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-muted-foreground hover:bg-accent hover:text-accent-foreground relative"
+                      onClick={() => setSidebarOpen(false)}
+                    >
+                      <churchIcons.volunteers className="h-6 w-6 shrink-0" />
+                      Volunteers
+                    </a>
+                  </li>
+                )}
+                
+                <li>
+                  <a
+                    href="/sunday-service"
+                    className="group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-muted-foreground hover:bg-accent hover:text-accent-foreground relative"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <churchIcons.sundayService className="h-6 w-6 shrink-0" />
+                    Sunday Service
+                  </a>
+                </li>
+                
+                {/* Logout option in mobile sidebar */}
+                <li className="pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => {
+                      handleSignOut()
+                      setSidebarOpen(false)
+                    }}
+                    className="group flex w-full gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <svg className="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                    Sign Out
+                  </button>
+                </li>
               </ul>
             </nav>
           </div>
         </div>
       )}
+
+      {/* Desktop header */}
+      <div className="hidden lg:block">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-6 shadow-sm">
+          <div className="flex flex-1 gap-x-4 self-stretch">
+            <div className="flex flex-1"></div>
+            <div className="flex items-center gap-x-4">
+              <PWAStatus />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-gray-700 hover:text-gray-900"
+              >
+                Sign Out
+              </Button>
+              <UserButton />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile header */}
+      <div className="lg:hidden">
+        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="-m-2.5 p-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <span className="sr-only">Open sidebar</span>
+            <Menu className="h-6 w-6" />
+          </Button>
+
+          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+            <div className="flex flex-1"></div>
+            <div className="flex items-center gap-x-4 lg:gap-x-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-gray-700 hover:text-gray-900"
+              >
+                Sign Out
+              </Button>
+              <UserButton />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Main content */}
       <div className="lg:pl-72">
@@ -143,6 +259,21 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Footer */}
+      <footer className="lg:pl-72">
+        <div className="border-t border-gray-200 bg-white px-4 py-6 sm:px-6 lg:px-8">
+          <div className="text-center text-sm text-gray-600">
+            © 2025 ChurchSuiteGH. All rights reserved. | Powered by The Geek Toolbox. | Call 024.429.9095
+          </div>
+        </div>
+      </footer>
+      
+      {/* PWA Install Prompt */}
+      <PWAInstallPrompt />
+      
+      {/* PWA Update Notification */}
+      <PWAUpdateNotification />
     </div>
   )
 }

@@ -288,7 +288,7 @@ export async function generateChildQRCode(childId: string, serviceData: {
       qrCodeId,
       childId,
       eventId: serviceData.eventId,
-      serviceType: serviceData.serviceType as any,
+      serviceType: serviceData.serviceType as "sunday-service" | "bible-study" | "prayer-meeting" | "special-event" | "outreach" | "fellowship" | "conference" | "children-church" | "nursery" | "youth-group",
       serviceDate: serviceData.serviceDate,
       location: serviceData.location,
       isActive: true,
@@ -363,7 +363,7 @@ export async function checkInChild(qrCodeId: string, checkedInBy: string): Promi
     const checkInData: NewChildCheckIn = {
       childId: qrCode.childId,
       eventId: qrCode.eventId,
-      serviceType: qrCode.serviceType as any, // Type assertion to handle enum mismatch
+      serviceType: qrCode.serviceType as "sunday-service" | "bible-study" | "prayer-meeting" | "special-event" | "outreach" | "fellowship" | "conference" | "children-church" | "nursery" | "youth-group",
       serviceDate: qrCode.serviceDate,
       checkInTime: new Date(),
       checkInMethod: 'qr-code',
@@ -488,7 +488,7 @@ async function logSecurityAction(auditData: {
   }
 }
 
-export async function getSecurityAuditLog(childId: string): Promise<ApiResponse<any[]>> {
+export async function getSecurityAuditLog(childId: string): Promise<ApiResponse<typeof childSecurityAudit.$inferSelect[]>> {
   try {
     const auditLog = await db
       .select()

@@ -29,13 +29,24 @@ import type {
   BorrowingRecord
 } from '@/lib/db/schema'
 
+interface InventoryAnalytics {
+  totalItems: number
+  availableItems: number
+  borrowedItems: number
+  overdueItems: number
+  totalValue: number
+  categoryBreakdown: Array<{ category: string; count: number }>
+  conditionBreakdown: Array<{ condition: string | null; count: number }>
+  recentBorrowings: Array<{ id: string; itemName: string; borrowerName: string; status: string }>
+}
+
 interface InventoryData {
   items: InventoryItem[]
   categories: InventoryCategory[]
   activeBorrowings: BorrowingRecord[]
   overdueBorrowings: BorrowingRecord[]
-  analytics?: any
-  members?: any[]
+  analytics?: InventoryAnalytics
+  members?: Array<{ id: string; firstName: string; lastName: string }>
 }
 
 export default function Inventory() {
@@ -57,8 +68,6 @@ export default function Inventory() {
 
   // Form states
   const [showAddItem, setShowAddItem] = useState(false)
-  const [showBorrowItem, setShowBorrowItem] = useState(false)
-  const [showReturnItem, setShowReturnItem] = useState(false)
 
   // Manage Categories states
   const [showAddCategory, setShowAddCategory] = useState(false)
@@ -263,7 +272,8 @@ export default function Inventory() {
   }
 
   // Handle item return
-  const handleReturnItem = async (borrowingId: string) => {
+  const handleReturnItem = async () => {
+    // TODO: borrowingId will be used when implementing the actual API call
     if (!window.confirm('Are you sure you want to return this item? This action cannot be undone.')) {
       return
     }
@@ -561,10 +571,12 @@ export default function Inventory() {
             <churchIcons.inventory className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inventoryData.analytics.totalItems || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {inventoryData.analytics.availableItems || 0} available
-            </p>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{inventoryData.analytics?.totalItems || 0}</div>
+              <div className="text-sm text-gray-600">
+                {inventoryData.analytics?.availableItems || 0} available
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -573,10 +585,12 @@ export default function Inventory() {
             <churchIcons.borrow className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inventoryData.analytics.borrowedItems || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {inventoryData.analytics.overdueItems || 0} overdue
-            </p>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{inventoryData.analytics?.borrowedItems || 0}</div>
+              <div className="text-sm text-gray-600">
+                {inventoryData.analytics?.overdueItems || 0} overdue
+              </div>
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -587,7 +601,7 @@ export default function Inventory() {
           <CardContent>
             <div className="text-2xl font-bold">
               GHS {(() => {
-                const value = inventoryData.analytics.totalValue;
+                const value = inventoryData.analytics?.totalValue || 0;
                 if (typeof value === 'number') {
                   return value.toFixed(2);
                 }
@@ -637,9 +651,9 @@ export default function Inventory() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {inventoryData.analytics?.recentBorrowings?.length > 0 ? (
+                {inventoryData.analytics?.recentBorrowings && inventoryData.analytics.recentBorrowings.length > 0 ? (
                   <div className="space-y-3">
-                    {inventoryData.analytics.recentBorrowings.slice(0, 5).map((borrowing: any) => (
+                    {inventoryData.analytics.recentBorrowings.slice(0, 5).map((borrowing) => (
                       <div key={borrowing.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                         <div>
                           <p className="font-medium">{borrowing.itemName}</p>
@@ -669,9 +683,9 @@ export default function Inventory() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {inventoryData.analytics?.categoryBreakdown?.length > 0 ? (
+                {inventoryData.analytics?.categoryBreakdown && inventoryData.analytics.categoryBreakdown.length > 0 ? (
                   <div className="space-y-3">
-                    {inventoryData.analytics.categoryBreakdown.map((category: any) => (
+                    {inventoryData.analytics.categoryBreakdown.map((category) => (
                       <div key={category.category} className="flex items-center justify-between">
                         <span className="capitalize">{category.category}</span>
                         <Badge variant="outline">{category.count}</Badge>
@@ -959,7 +973,7 @@ export default function Inventory() {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleReturnItem(borrowing.id)}
+                            onClick={() => handleReturnItem()}
                           >
                             <churchIcons.return className="mr-2 h-3 w-3" />
                             Return Item
@@ -1001,7 +1015,7 @@ export default function Inventory() {
                           <Button 
                             size="sm" 
                             variant="outline"
-                            onClick={() => handleReturnItem(borrowing.id)}
+                            onClick={() => handleReturnItem()}
                           >
                             <churchIcons.return className="mr-2 h-3 w-3" />
                             Return Item

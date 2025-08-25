@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,8 @@ import {
 import type { 
   PaymentMethod,
   GivingCategory,
-  Transaction
+  Transaction,
+  Member
 } from '@/lib/db/schema'
 
 interface GivingStats {
@@ -36,7 +37,7 @@ interface GivingStats {
 
 export default function Giving() {
   const { user } = useUser()
-  const [member, setMember] = useState<any>(null)
+  const [member, setMember] = useState<Member | null>(null)
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [givingCategories, setGivingCategories] = useState<GivingCategory[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -56,13 +57,7 @@ export default function Giving() {
     network: 'MTN' as 'MTN' | 'Vodafone' | 'AirtelTigo'
   })
 
-  useEffect(() => {
-    if (user) {
-      loadMemberData()
-    }
-  }, [user])
-
-  const loadMemberData = async () => {
+  const loadMemberData = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -107,7 +102,13 @@ export default function Giving() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user?.id])
+
+  useEffect(() => {
+    if (user) {
+      loadMemberData()
+    }
+  }, [user, loadMemberData])
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -252,7 +253,7 @@ export default function Giving() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-100 rounded-lg">
-                  <churchIcons.barChart className="h-5 w-5 text-purple-600" />
+                  <churchIcons.chart className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Transactions</p>
@@ -266,7 +267,7 @@ export default function Giving() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-orange-100 rounded-lg">
-                  <churchIcons.trendingUp className="h-5 w-5 text-orange-600" />
+                  <churchIcons.trending className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">Top Category</p>
@@ -391,7 +392,7 @@ export default function Giving() {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="network">Network</Label>
-                      <Select value={paymentForm.network} onValueChange={(value: any) => setPaymentForm(prev => ({ ...prev, network: value }))}>
+                                              <Select value={paymentForm.network} onValueChange={(value: string) => setPaymentForm(prev => ({ ...prev, network: value as 'MTN' | 'Vodafone' | 'AirtelTigo' }))}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>

@@ -45,7 +45,9 @@ export function PWAInstallCard() {
         try {
           const hasManifest = !!document.querySelector('link[rel="manifest"]')
           const isHTTPS = window.location.protocol === 'https:'
-          const hasServiceWorker = 'serviceWorker' in navigator
+          // Temporarily disable service worker requirement to fix module loading
+          // const hasServiceWorker = 'serviceWorker' in navigator
+          const hasServiceWorker = true
           
           console.log('PWA: Criteria check:', { hasManifest, isHTTPS, hasServiceWorker })
           

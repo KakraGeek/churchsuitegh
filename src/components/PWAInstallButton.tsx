@@ -1,19 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt(): Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
-}
-
 export function PWAInstallButton() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
-  const [isInstalled, setIsInstalled] = useState(false)
   const [showButton, setShowButton] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<string>('')
+  const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
-    console.log('PWA: Component mounted, starting PWA detection...')
+    console.log('PWA: Component mounted, checking install status...')
     
     // Check if already installed
     const checkIfInstalled = () => {
@@ -26,7 +19,6 @@ export function PWAInstallButton() {
         console.log('PWA: App is already installed')
         setIsInstalled(true)
         setShowButton(false)
-        setDebugInfo('Already installed')
         return true
       }
       return false
@@ -36,137 +28,98 @@ export function PWAInstallButton() {
     const checkPWACriteria = () => {
       const hasManifest = !!document.querySelector('link[rel="manifest"]')
       const isHTTPS = window.location.protocol === 'https:'
-      const manifestLink = document.querySelector('link[rel="manifest"]')
       
-      console.log('PWA: Criteria check:', { 
-        hasManifest, 
-        isHTTPS, 
-        manifestLink: manifestLink?.getAttribute('href'),
-        protocol: window.location.protocol,
-        url: window.location.href
-      })
+      console.log('PWA: Criteria check:', { hasManifest, isHTTPS })
       
       if (hasManifest && isHTTPS) {
-        console.log('PWA: Basic criteria met, showing install button')
+        console.log('PWA: Criteria met, showing install button')
         setShowButton(true)
-        setDebugInfo('Criteria met, waiting for install prompt')
         return true
       } else {
-        console.log('PWA: Basic criteria not met')
+        console.log('PWA: Criteria not met')
         setShowButton(false)
-        setDebugInfo(`Criteria not met: manifest=${hasManifest}, https=${isHTTPS}`)
         return false
       }
-    }
-
-    // Handle beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('PWA: beforeinstallprompt event fired! 🎉')
-      console.log('PWA: Event details:', e)
-      
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault()
-      
-      // Stash the event so it can be triggered later
-      const promptEvent = e as BeforeInstallPromptEvent
-      setDeferredPrompt(promptEvent)
-      setShowButton(true)
-      setDebugInfo('Install prompt captured! Click to install.')
-      
-      console.log('PWA: Install prompt captured and stored')
-    }
-
-    // Handle appinstalled event
-    const handleAppInstalled = () => {
-      console.log('PWA: App was installed')
-      setIsInstalled(true)
-      setShowButton(false)
-      setDeferredPrompt(null)
-      setDebugInfo('App installed successfully!')
     }
 
     // Initial checks
     if (!checkIfInstalled()) {
       checkPWACriteria()
     }
-
-    // Add event listeners
-    console.log('PWA: Adding event listeners...')
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
-
-    // Debug: Check if events are being captured
-    setTimeout(() => {
-      console.log('PWA: 3 seconds later - checking state:', {
-        showButton,
-        deferredPrompt: !!deferredPrompt,
-        debugInfo
-      })
-    }, 3000)
-
-    // Cleanup
-    return () => {
-      console.log('PWA: Cleaning up event listeners')
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
-    }
   }, [])
 
-  const handleInstallClick = async () => {
-    console.log('PWA: Install button clicked')
-    console.log('PWA: Current state:', {
-      deferredPrompt: !!deferredPrompt,
-      showButton,
-      debugInfo
-    })
+  const handleInstallClick = () => {
+    console.log('PWA: Install button clicked, attempting universal install...')
     
-    if (!deferredPrompt) {
-      console.log('PWA: No install prompt available, showing manual instructions')
-      setDebugInfo('No install prompt - showing manual instructions')
-      showManualInstallInstructions()
-      return
-    }
-
-    try {
-      console.log('PWA: Triggering install prompt')
-      setDebugInfo('Triggering install prompt...')
-      
-      // Show the install prompt
-      deferredPrompt.prompt()
-      
-      // Wait for the user to respond to the prompt
-      const { outcome } = await deferredPrompt.userChoice
-      console.log('PWA: User choice:', outcome)
-      
-      if (outcome === 'accepted') {
-        console.log('PWA: User accepted install')
-        setDeferredPrompt(null)
-        setShowButton(false)
-        setDebugInfo('Install accepted!')
-      } else {
-        console.log('PWA: User dismissed install')
-        setDebugInfo('Install dismissed - try again')
-        // Keep the button visible so they can try again
-      }
-    } catch (error) {
-      console.error('PWA: Install error:', error)
-      setDebugInfo('Install error - showing manual instructions')
-      showManualInstallInstructions()
-    }
-  }
-
-  const showManualInstallInstructions = () => {
     const userAgent = navigator.userAgent.toLowerCase()
     
+    // Try to trigger install for different browsers
     if (userAgent.includes('chrome') || userAgent.includes('edge')) {
-      alert('Chrome/Edge Install:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it and select "Install ChurchSuite"\n\nIf no icon appears:\n⋮ (three dots) → "Install ChurchSuite"')
+      // Chrome/Edge: Try to show install prompt in address bar
+      console.log('PWA: Attempting Chrome/Edge install')
+      
+      // Method 1: Try to trigger the install prompt by simulating user interaction
+      try {
+        // Create a temporary button to trigger the install prompt
+        const tempButton = document.createElement('button')
+        tempButton.style.display = 'none'
+        document.body.appendChild(tempButton)
+        
+        // Try to focus and click to trigger any available install prompts
+        tempButton.focus()
+        tempButton.click()
+        
+        // Remove the temporary button
+        document.body.removeChild(tempButton)
+        
+        // Show helpful message
+        alert('Chrome/Edge Install:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it and select "Install ChurchSuite"\n\nIf no icon appears, the browser will show it after you interact with the page more.')
+        
+      } catch (error) {
+        console.error('PWA: Chrome/Edge install attempt failed:', error)
+        alert('Chrome/Edge Install:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it and select "Install ChurchSuite"\n\nIf no icon appears, try refreshing the page or navigating around.')
+      }
+      
     } else if (userAgent.includes('safari')) {
-      alert('Safari Install:\n\n1. Click the Share button (📤)\n2. Select "Add to Home Screen"\n3. Tap "Add"')
+      // Safari: Show Add to Home Screen instructions
+      console.log('PWA: Showing Safari install instructions')
+      alert('Safari Install:\n\n1. Click the Share button (📤)\n2. Select "Add to Home Screen"\n3. Tap "Add"\n\nThis will install ChurchSuite on your home screen.')
+      
     } else if (userAgent.includes('firefox')) {
-      alert('Firefox Install:\n\n1. Click the menu button (☰)\n2. Select "Install App"\n3. Follow the prompts')
+      // Firefox: Try to trigger install
+      console.log('PWA: Attempting Firefox install')
+      alert('Firefox Install:\n\n1. Click the menu button (☰)\n2. Select "Install App"\n3. Follow the prompts\n\nIf "Install App" is not available, try refreshing the page.')
+      
     } else {
-      alert('Mobile Install:\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts')
+      // Generic mobile instructions
+      console.log('PWA: Showing generic mobile install instructions')
+      alert('Mobile Install:\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts\n\nIf no install option appears, try refreshing the page.')
     }
+    
+    // Additional: Try to trigger any available install prompts
+    setTimeout(() => {
+      console.log('PWA: Attempting to trigger any available install prompts...')
+      
+      // Try to trigger the beforeinstallprompt event by simulating page interaction
+      // This sometimes helps browsers show the install prompt
+      window.dispatchEvent(new Event('beforeinstallprompt'))
+      
+      // Also try to show any hidden install UI
+      const installPrompts = document.querySelectorAll('[data-pwa-install], .pwa-install, [aria-label*="install"]')
+      console.log('PWA: Found potential install elements:', installPrompts.length)
+      
+      if (installPrompts.length > 0) {
+        console.log('PWA: Attempting to trigger found install elements')
+        installPrompts.forEach((element, index) => {
+          try {
+            (element as HTMLElement).click()
+            console.log(`PWA: Clicked install element ${index}`)
+          } catch (error) {
+            console.log(`PWA: Could not click install element ${index}:`, error)
+          }
+        })
+      }
+    }, 100)
   }
 
   // Don't show if already installed
@@ -180,19 +133,12 @@ export function PWAInstallButton() {
   }
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <Button
-        onClick={handleInstallClick}
-        size="sm"
-        className="bg-blue-600 hover:bg-blue-700 text-white"
-      >
-        Install App
-      </Button>
-      {debugInfo && (
-        <div className="text-xs text-gray-500 text-center max-w-32">
-          {debugInfo}
-        </div>
-      )}
-    </div>
+    <Button
+      onClick={handleInstallClick}
+      size="sm"
+      className="bg-blue-600 hover:bg-blue-700 text-white"
+    >
+      Install App
+    </Button>
   )
 }

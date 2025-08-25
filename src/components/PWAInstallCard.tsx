@@ -91,34 +91,139 @@ export function PWAInstallCard() {
   }, [])
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      console.log('PWA: No install prompt available, showing manual instructions')
-      showManualInstallInstructions()
-      return
+    console.log('PWA: Install button clicked, attempting universal install...')
+    
+    // First, try to use the captured install prompt if available
+    if (deferredPrompt) {
+      try {
+        console.log('PWA: Using captured install prompt')
+        deferredPrompt.prompt()
+        
+        const { outcome } = await deferredPrompt.userChoice
+        console.log('PWA: User choice:', outcome)
+        
+        if (outcome === 'accepted') {
+          console.log('PWA: User accepted install')
+          setDeferredPrompt(null)
+          setShowCard(false)
+          return
+        } else {
+          console.log('PWA: User dismissed install')
+          // Keep the card visible so they can try again
+        }
+      } catch (error) {
+        console.error('PWA: Install prompt error:', error)
+        // Fall through to universal install methods
+      }
     }
 
-    try {
-      console.log('PWA: Triggering install prompt')
+    // Universal install approach for all users
+    console.log('PWA: Attempting universal install methods...')
+    
+    const userAgent = navigator.userAgent.toLowerCase()
+    
+    if (userAgent.includes('chrome') || userAgent.includes('edge')) {
+      // Chrome/Edge: Try multiple methods to trigger install
+      console.log('PWA: Attempting Chrome/Edge universal install')
       
-      // Show the install prompt
-      deferredPrompt.prompt()
-      
-      // Wait for the user to respond to the prompt
-      const { outcome } = await deferredPrompt.userChoice
-      console.log('PWA: User choice:', outcome)
-      
-      if (outcome === 'accepted') {
-        console.log('PWA: User accepted install')
-        setDeferredPrompt(null)
-        setShowCard(false)
-      } else {
-        console.log('PWA: User dismissed install')
-        // Keep the card visible so they can try again
+      try {
+        // Method 1: Try to trigger any available install prompts
+        const installPrompts = document.querySelectorAll('[data-pwa-install], .pwa-install, [aria-label*="install"], [title*="install"]')
+        console.log('PWA: Found potential install elements:', installPrompts.length)
+        
+        if (installPrompts.length > 0) {
+          installPrompts.forEach((element, index) => {
+            try {
+              (element as HTMLElement).click()
+              console.log(`PWA: Clicked install element ${index}`)
+            } catch (error) {
+              console.log(`PWA: Could not click install element ${index}:`, error)
+            }
+          })
+        }
+        
+        // Method 2: Try to trigger the beforeinstallprompt event manually
+        window.dispatchEvent(new Event('beforeinstallprompt'))
+        
+        // Method 3: Try to focus and interact with the page to trigger install prompts
+        const tempButton = document.createElement('button')
+        tempButton.style.display = 'none'
+        tempButton.setAttribute('data-pwa-install', 'true')
+        document.body.appendChild(tempButton)
+        
+        tempButton.focus()
+        tempButton.click()
+        
+        setTimeout(() => {
+          document.body.removeChild(tempButton)
+        }, 100)
+        
+        // Show success message with next steps
+        alert('Chrome/Edge Install:\n\n✅ Install prompt triggered!\n\n1. Look for the install icon (📱) in your address bar\n2. Click it and select "Install ChurchSuite"\n\nIf no icon appears, try refreshing the page or navigating around.')
+        
+      } catch (error) {
+        console.error('PWA: Chrome/Edge universal install failed:', error)
+        alert('Chrome/Edge Install:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it and select "Install ChurchSuite"\n\nIf no icon appears:\n⋮ (three dots) → "Install ChurchSuite"')
       }
-    } catch (error) {
-      console.error('PWA: Install error:', error)
-      showManualInstallInstructions()
+      
+    } else if (userAgent.includes('safari')) {
+      // Safari: Show Add to Home Screen instructions
+      console.log('PWA: Showing Safari install instructions')
+      alert('Safari Install:\n\n1. Click the Share button (📤)\n2. Select "Add to Home Screen"\n3. Tap "Add"\n\nThis will install ChurchSuite on your home screen.')
+      
+    } else if (userAgent.includes('firefox')) {
+      // Firefox: Try to trigger install
+      console.log('PWA: Attempting Firefox universal install')
+      
+      try {
+        // Try to trigger any available install prompts
+        window.dispatchEvent(new Event('beforeinstallprompt'))
+        
+        alert('Firefox Install:\n\n✅ Install prompt triggered!\n\n1. Click the menu button (☰)\n2. Select "Install App"\n3. Follow the prompts\n\nIf "Install App" is not available, try refreshing the page.')
+        
+      } catch (error) {
+        console.error('PWA: Firefox install attempt failed:', error)
+        alert('Firefox Install:\n\n1. Click the menu button (☰)\n2. Select "Install App"\n3. Follow the prompts\n\nIf "Install App" is not available, try refreshing the page.')
+      }
+      
+    } else {
+      // Generic mobile instructions with universal trigger attempt
+      console.log('PWA: Attempting generic mobile universal install')
+      
+      try {
+        // Try to trigger any available install prompts
+        window.dispatchEvent(new Event('beforeinstallprompt'))
+        
+        alert('Mobile Install:\n\n✅ Install prompt triggered!\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts\n\nIf no install option appears, try refreshing the page.')
+        
+      } catch (error) {
+        console.error('PWA: Generic mobile install attempt failed:', error)
+        alert('Mobile Install:\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts\n\nIf no install option appears, try refreshing the page.')
+      }
     }
+    
+    // Additional: Try to trigger any available install prompts after a delay
+    setTimeout(() => {
+      console.log('PWA: Delayed attempt to trigger install prompts...')
+      
+      // Try to trigger the beforeinstallprompt event again
+      window.dispatchEvent(new Event('beforeinstallprompt'))
+      
+      // Look for any new install elements that might have appeared
+      const newInstallPrompts = document.querySelectorAll('[data-pwa-install], .pwa-install, [aria-label*="install"], [title*="install"]')
+      console.log('PWA: Found new install elements after delay:', newInstallPrompts.length)
+      
+      if (newInstallPrompts.length > 0) {
+        newInstallPrompts.forEach((element, index) => {
+          try {
+            (element as HTMLElement).click()
+            console.log(`PWA: Clicked new install element ${index}`)
+          } catch (error) {
+            console.log(`PWA: Could not click new install element ${index}:`, error)
+          }
+        })
+      }
+    }, 500)
   }
 
   const showManualInstallInstructions = () => {

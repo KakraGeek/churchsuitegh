@@ -42,21 +42,56 @@ export function PWAStatus() {
       try {
         const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement
         if (manifestLink) {
+          console.log('PWA: Found manifest link:', manifestLink.href)
           fetch(manifestLink.href)
-            .then(response => response.json())
+            .then(response => {
+              console.log('PWA: Manifest fetch response:', response.status, response.ok)
+              return response.json()
+            })
             .then(manifest => {
+              console.log('PWA: Manifest content:', manifest)
               criteria.validManifest = !!manifest.name && !!manifest.icons && manifest.icons.length > 0
               criteria.hasIcons = manifest.icons && manifest.icons.length > 0
+              console.log('PWA: Manifest validation:', {
+                hasName: !!manifest.name,
+                hasIcons: !!manifest.icons,
+                iconCount: manifest.icons?.length || 0,
+                iconPaths: manifest.icons?.map((icon: any) => icon.src) || []
+              })
               setPwaCriteria(criteria)
             })
-            .catch(() => {
+            .catch((error) => {
+              console.error('PWA: Error fetching manifest:', error)
               criteria.validManifest = false
               setPwaCriteria(criteria)
             })
+        } else {
+          console.log('PWA: No manifest link found in document')
         }
       } catch (error) {
         console.error('PWA: Error checking manifest:', error)
       }
+
+      // Also check if PWA icons exist directly
+      const checkIconExists = async (iconPath: string) => {
+        try {
+          const response = await fetch(iconPath)
+          return response.ok
+        } catch {
+          return false
+        }
+      }
+
+      // Check both PWA icons
+      Promise.all([
+        checkIconExists('/pwa-192x192.png'),
+        checkIconExists('/pwa-512x512.png')
+      ]).then(([icon192, icon512]) => {
+        console.log('PWA: Icon availability check:', {
+          'pwa-192x192.png': icon192,
+          'pwa-512x512.png': icon512
+        })
+      })
 
       setPwaCriteria(criteria)
       return criteria

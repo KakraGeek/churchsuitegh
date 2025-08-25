@@ -7,36 +7,86 @@ import { useState, useEffect } from 'react'
 export function LandingPage() {
   const navigate = useNavigate()
   const [showInstallButton, setShowInstallButton] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
 
-  // Simple PWA install detection
+  // Proper PWA install detection and handling
   useEffect(() => {
     console.log('LandingPage: Component mounted')
     console.log('LandingPage: Viewport width:', window.innerWidth)
     console.log('LandingPage: User agent:', navigator.userAgent)
 
-    // Check if PWA can be installed
-    const checkPWAInstall = () => {
-      // Check if we're in standalone mode (already installed)
+    // Listen for the beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('PWA: beforeinstallprompt event fired')
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault()
+      // Stash the event so it can be triggered later
+      setDeferredPrompt(e)
+      // Show the install button
+      setShowInstallButton(true)
+    }
+
+    // Listen for the appinstalled event
+    const handleAppInstalled = () => {
+      console.log('PWA: App was installed')
+      setShowInstallButton(false)
+      setDeferredPrompt(null)
+    }
+
+    // Check if already installed
+    const checkIfInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      
-      if (!isStandalone) {
-        // Check if PWA criteria are met
-        const hasManifest = !!document.querySelector('link[rel="manifest"]')
-        const isHTTPS = window.location.protocol === 'https:'
-        
-        if (hasManifest && isHTTPS) {
-          setShowInstallButton(true)
-        }
+      if (isStandalone) {
+        console.log('PWA: App is already installed')
+        setShowInstallButton(false)
       }
     }
 
-    // Check after a short delay
-    setTimeout(checkPWAInstall, 1000)
+    // Add event listeners
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleAppInstalled)
+
+    // Check if already installed
+    checkIfInstalled()
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleAppInstalled)
+    }
   }, [])
 
-  const handleInstallClick = () => {
-    // Show manual install instructions
-    alert('To install ChurchSuite:\n\nChrome/Edge: Click ⋮ → "Install ChurchSuite"\nSafari: Click Share → "Add to Home Screen"\nMobile: Use browser menu → "Add to Home Screen"')
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      console.log('PWA: No install prompt available, showing manual instructions')
+      // Fallback to manual instructions if no prompt
+      alert('To install ChurchSuite:\n\nChrome/Edge: Click ⋮ → "Install ChurchSuite"\nSafari: Click Share → "Add to Home Screen"\nMobile: Use browser menu → "Add to Home Screen"')
+      return
+    }
+
+    try {
+      console.log('PWA: Triggering install prompt')
+      // Show the install prompt
+      deferredPrompt.prompt()
+      
+      // Wait for the user to respond to the prompt
+      const { outcome } = await deferredPrompt.userChoice
+      console.log('PWA: User choice:', outcome)
+      
+      if (outcome === 'accepted') {
+        console.log('PWA: User accepted the install prompt')
+      } else {
+        console.log('PWA: User dismissed the install prompt')
+      }
+      
+      // Clear the deferredPrompt
+      setDeferredPrompt(null)
+      setShowInstallButton(false)
+    } catch (error) {
+      console.error('PWA: Error during install:', error)
+      // Fallback to manual instructions
+      alert('Install failed. Please use manual installation:\n\nChrome/Edge: Click ⋮ → "Install ChurchSuite"\nSafari: Click Share → "Add to Home Screen"\nMobile: Use browser menu → "Add to Home Screen"')
+    }
   }
 
   const features = [

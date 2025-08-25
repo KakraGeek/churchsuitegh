@@ -34,7 +34,7 @@ export function LandingPage() {
     {
       icon: churchIcons.service,
       title: 'Sunday Services',
-      description: 'Plan and manage weekly service programs, song lyrics, scripture readings, and service schedules.',
+      description: 'Plan and manage weekly service programs, song lyrics, scripture readings, and service schedules. Offer digital service programs to your members and cut printing costs.',
       color: 'text-orange-600',
       bgColor: 'bg-orange-50'
     },

@@ -87,41 +87,122 @@ function App() {
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           
+          {/* Root path - show landing page for unauthenticated, dashboard for authenticated */}
+          <Route path="/" element={
+            <>
+              <SignedOut>
+                <LandingPage />
+              </SignedOut>
+              <SignedIn>
+                <Layout>
+                  <Dashboard />
+                </Layout>
+              </SignedIn>
+            </>
+          } />
+          
+          {/* Public routes - only for unauthenticated users */}
+          <Route path="/display/qr" element={
+            <SignedOut>
+              <DisplayQR />
+            </SignedOut>
+          } />
+          
           {/* Protected routes - require authentication */}
-          <Route path="/*" element={
+          <Route path="/dashboard" element={
             <SignedIn>
               <Layout>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/members" element={<Members />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/attendance" element={<Attendance />} />
-                  <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/communications" element={<Communications />} />
-                  <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/giving" element={<Giving />} />
-                  <Route path="/checkin" element={<CheckIn />} />
-                  <Route path="/children" element={<Children />} />
-                  <Route path="/volunteers" element={<Volunteers />} />
-                  <Route path="/inventory" element={<Inventory />} />
-                  <Route path="/sunday-service" element={<SundayService />} />
-                  {/* Add more routes as we build features */}
-                </Routes>
+                <Dashboard />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/members" element={
+            <SignedIn>
+              <Layout>
+                <Members />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/events" element={
+            <SignedIn>
+              <Layout>
+                <Events />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/attendance" element={
+            <SignedIn>
+              <Layout>
+                <Attendance />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/analytics" element={
+            <SignedIn>
+              <Layout>
+                <Analytics />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/communications" element={
+            <SignedIn>
+              <Layout>
+                <Communications />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/notifications" element={
+            <SignedIn>
+              <Layout>
+                <Notifications />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/giving" element={
+            <SignedIn>
+              <Layout>
+                <Giving />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/checkin" element={
+            <SignedIn>
+              <Layout>
+                <CheckIn />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/children" element={
+            <SignedIn>
+              <Layout>
+                <Children />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/volunteers" element={
+            <SignedIn>
+              <Layout>
+                <Volunteers />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/inventory" element={
+            <SignedIn>
+              <Layout>
+                <Inventory />
+              </Layout>
+            </SignedIn>
+          } />
+          <Route path="/sunday-service" element={
+            <SignedIn>
+              <Layout>
+                <SundayService />
               </Layout>
             </SignedIn>
           } />
           
-          {/* Public routes - only for unauthenticated users */}
-          <Route path="/*" element={
-            <SignedOut>
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/display/qr" element={<DisplayQR />} />
-                <Route path="*" element={<RedirectToSignIn />} />
-              </Routes>
-            </SignedOut>
-          } />
+          {/* Catch all other routes */}
+          <Route path="*" element={<RedirectToSignIn />} />
         </Routes>
       </Router>
     </ClerkProvider>

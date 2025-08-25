@@ -2,6 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { churchIcons } from '@/lib/icons'
 import { useNavigate } from 'react-router-dom'
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
+import { PWAStatus } from '@/components/PWAStatus'
+import { PWAUpdateNotification } from '@/components/PWAUpdateNotification'
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -68,6 +71,7 @@ export function LandingPage() {
               </div>
             </div>
             <div className="flex gap-2 sm:gap-3 justify-center sm:justify-end">
+              <PWAStatus />
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/sign-in')}
@@ -191,6 +195,10 @@ export function LandingPage() {
           </p>
         </div>
       </div>
+
+      {/* PWA Components for Landing Page */}
+      <PWAInstallPrompt />
+      <PWAUpdateNotification />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { churchIcons } from '@/lib/icons'
 import { useNavigate } from 'react-router-dom'
-import { PWAInstallButton } from '@/components/PWAInstallButton'
+import { PWAInstallCard } from '@/components/PWAInstallCard'
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -66,7 +66,6 @@ export function LandingPage() {
               </div>
             </div>
             <div className="flex gap-2 sm:gap-3 justify-center sm:justify-end">
-              <PWAInstallButton />
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/sign-in')}
@@ -176,20 +175,24 @@ export function LandingPage() {
       </div>
 
       {/* Footer */}
-      <div className="bg-gray-900 text-white py-8 sm:py-12">
+      <footer className="bg-gray-900 text-white py-8 sm:py-12">
         <div className="container mx-auto px-3 sm:px-4 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-6">
             <img src="/brand/logo.png" alt="ChurchSuite Ghana Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
-            <span className="text-lg sm:text-xl font-bold">ChurchSuite Ghana</span>
+            <div>
+              <h3 className="text-lg sm:text-xl font-semibold">ChurchSuite Ghana</h3>
+              <p className="text-sm sm:text-base text-gray-300">Empowering churches with smart technology</p>
+            </div>
           </div>
-          <p className="text-sm sm:text-base text-gray-300 mb-3 sm:mb-4">
-            © 2025 ChurchSuite Ghana. All rights reserved.
-          </p>
-          <p className="text-xs sm:text-sm text-gray-400">
-            Powered by The Geek Toolbox | Call 024.429.9095
-          </p>
+          <div className="text-xs sm:text-sm text-gray-400">
+            <p>&copy; 2024 ChurchSuite Ghana. All rights reserved.</p>
+            <p className="mt-1">Built with ❤️ for the Ghanaian church community</p>
+          </div>
         </div>
-      </div>
+      </footer>
+
+      {/* Floating PWA Install Card */}
+      <PWAInstallCard />
     </div>
   )
 }

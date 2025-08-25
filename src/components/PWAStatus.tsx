@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Download, CheckCircle, Monitor, Smartphone } from '@/lib/icons'
+import { Download, CheckCircle, Monitor } from '@/lib/icons'
 import { churchIcons } from '@/lib/icons'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -152,7 +152,7 @@ export function PWAStatus() {
           variant="outline"
           className="text-blue-600 border-blue-600 hover:bg-blue-50"
         >
-          <Smartphone className="w-4 h-4 mr-1" />
+          <churchIcons.smartphone className="w-4 h-4 mr-1" />
           How to Install
         </Button>
         

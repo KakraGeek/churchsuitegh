@@ -2,16 +2,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { churchIcons } from '@/lib/icons'
 import { useNavigate } from 'react-router-dom'
-import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
-import { PWAStatus } from '@/components/PWAStatus'
-import { PWAUpdateNotification } from '@/components/PWAUpdateNotification'
-import { PWASmokeTest } from '@/components/PWASmokeTest'
+import { useEffect } from 'react'
 
 export function LandingPage() {
   const navigate = useNavigate()
 
   // Note: Removed automatic redirect - users must manually click Sign In/Sign Up
   // This allows the landing page to be publicly accessible for social media crawlers
+
+  // Debug logging for mobile issues
+  useEffect(() => {
+    console.log('LandingPage: Component mounted')
+    console.log('LandingPage: Viewport width:', window.innerWidth)
+    console.log('LandingPage: User agent:', navigator.userAgent)
+  }, [])
 
   const features = [
     {
@@ -72,7 +76,6 @@ export function LandingPage() {
               </div>
             </div>
             <div className="flex gap-2 sm:gap-3 justify-center sm:justify-end">
-              <PWAStatus />
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/sign-in')}
@@ -196,11 +199,6 @@ export function LandingPage() {
           </p>
         </div>
       </div>
-
-      {/* PWA Components for Landing Page */}
-      <PWAInstallPrompt />
-      <PWAUpdateNotification />
-      <PWASmokeTest />
     </div>
   )
 }

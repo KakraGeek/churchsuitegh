@@ -2,20 +2,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { churchIcons } from '@/lib/icons'
 import { useNavigate } from 'react-router-dom'
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 export function LandingPage() {
   const navigate = useNavigate()
+  const [showInstallButton, setShowInstallButton] = useState(false)
 
-  // Note: Removed automatic redirect - users must manually click Sign In/Sign Up
-  // This allows the landing page to be publicly accessible for social media crawlers
-
-  // Debug logging for mobile issues
+  // Simple PWA install detection
   useEffect(() => {
     console.log('LandingPage: Component mounted')
     console.log('LandingPage: Viewport width:', window.innerWidth)
     console.log('LandingPage: User agent:', navigator.userAgent)
+
+    // Check if PWA can be installed
+    const checkPWAInstall = () => {
+      // Check if we're in standalone mode (already installed)
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      
+      if (!isStandalone) {
+        // Check if PWA criteria are met
+        const hasManifest = !!document.querySelector('link[rel="manifest"]')
+        const isHTTPS = window.location.protocol === 'https:'
+        
+        if (hasManifest && isHTTPS) {
+          setShowInstallButton(true)
+        }
+      }
+    }
+
+    // Check after a short delay
+    setTimeout(checkPWAInstall, 1000)
   }, [])
+
+  const handleInstallClick = () => {
+    // Show manual install instructions
+    alert('To install ChurchSuite:\n\nChrome/Edge: Click ⋮ → "Install ChurchSuite"\nSafari: Click Share → "Add to Home Screen"\nMobile: Use browser menu → "Add to Home Screen"')
+  }
 
   const features = [
     {
@@ -76,6 +98,15 @@ export function LandingPage() {
               </div>
             </div>
             <div className="flex gap-2 sm:gap-3 justify-center sm:justify-end">
+              {showInstallButton && (
+                <Button
+                  onClick={handleInstallClick}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Install App
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/sign-in')}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Download, CheckCircle, Monitor } from '@/lib/icons'
+import { Download, CheckCircle, Monitor, Info } from '@/lib/icons'
 import { churchIcons } from '@/lib/icons'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -17,8 +17,39 @@ export function PWAStatus() {
   const [isInstalled, setIsInstalled] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [showManualInstall, setShowManualInstall] = useState(false)
+  const [serviceWorkerStatus, setServiceWorkerStatus] = useState<string>('checking')
 
   useEffect(() => {
+    // Check service worker status
+    const checkServiceWorker = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.getRegistration()
+          if (registration) {
+            if (registration.active) {
+              setServiceWorkerStatus('active')
+              console.log('PWA: Service Worker is active')
+            } else if (registration.installing) {
+              setServiceWorkerStatus('installing')
+              console.log('PWA: Service Worker is installing')
+            } else if (registration.waiting) {
+              setServiceWorkerStatus('waiting')
+              console.log('PWA: Service Worker is waiting')
+            }
+          } else {
+            setServiceWorkerStatus('not-registered')
+            console.log('PWA: No Service Worker registered')
+          }
+        } catch (error) {
+          setServiceWorkerStatus('error')
+          console.error('PWA: Error checking Service Worker:', error)
+        }
+      } else {
+        setServiceWorkerStatus('not-supported')
+        console.log('PWA: Service Worker not supported')
+      }
+    }
+
     // Check if app is already installed
     const checkIfInstalled = () => {
       if (window.matchMedia('(display-mode: standalone)').matches || 
@@ -49,6 +80,9 @@ export function PWAStatus() {
 
     // Check if already installed
     checkIfInstalled()
+    
+    // Check service worker status
+    checkServiceWorker()
 
     // Add event listeners
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -60,6 +94,10 @@ export function PWAStatus() {
     const checkPWACriteria = setTimeout(() => {
       if (!deferredPrompt && !isInstalled) {
         console.log('PWA: No beforeinstallprompt event, checking criteria...')
+        console.log('PWA: Service Worker status:', serviceWorkerStatus)
+        console.log('PWA: HTTPS:', window.location.protocol === 'https:')
+        console.log('PWA: Manifest:', !!document.querySelector('link[rel="manifest"]'))
+        
         // Check if PWA criteria are met
         if (window.matchMedia('(display-mode: standalone)').matches) {
           console.log('PWA: Already in standalone mode')
@@ -77,7 +115,7 @@ export function PWAStatus() {
       window.removeEventListener('offline', handleOffline)
       clearTimeout(checkPWACriteria)
     }
-  }, [deferredPrompt, isInstalled])
+  }, [deferredPrompt, isInstalled, serviceWorkerStatus])
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
@@ -145,23 +183,29 @@ export function PWAStatus() {
 
   if (showManualInstall) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="relative">
         <Button
           onClick={handleManualInstall}
           size="sm"
           variant="outline"
           className="text-blue-600 border-blue-600 hover:bg-blue-50"
         >
-          <churchIcons.smartphone className="w-4 h-4 mr-1" />
+          <Info className="w-4 h-4 mr-1" />
           How to Install
         </Button>
         
         {showManualInstall && (
-          <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50">
+          <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50">
             <div className="text-xs text-gray-600 space-y-2">
+              <h4 className="font-semibold text-gray-800 mb-2">Manual Installation:</h4>
               <p><strong>Chrome/Edge:</strong> Click ⋮ → "Install ChurchSuite"</p>
               <p><strong>Safari:</strong> Click Share → "Add to Home Screen"</p>
               <p><strong>Mobile:</strong> Use browser menu → "Add to Home Screen"</p>
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <p className="text-xs text-gray-500">
+                  <strong>Status:</strong> SW: {serviceWorkerStatus} | HTTPS: {window.location.protocol === 'https:' ? 'Yes' : 'No'}
+                </p>
+              </div>
             </div>
           </div>
         )}

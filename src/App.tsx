@@ -83,10 +83,6 @@ function App() {
     >
       <Router>
         <Routes>
-          {/* Public routes - no authentication required */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/display/qr" element={<DisplayQR />} />
-          
           {/* Clerk authentication routes */}
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
@@ -96,6 +92,7 @@ function App() {
             <SignedIn>
               <Layout>
                 <Routes>
+                  <Route path="/" element={<Dashboard />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/members" element={<Members />} />
                   <Route path="/events" element={<Events />} />
@@ -115,10 +112,14 @@ function App() {
             </SignedIn>
           } />
           
-          {/* Handle unauthenticated access to protected routes */}
+          {/* Public routes - only for unauthenticated users */}
           <Route path="/*" element={
             <SignedOut>
-              <RedirectToSignIn />
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/display/qr" element={<DisplayQR />} />
+                <Route path="*" element={<RedirectToSignIn />} />
+              </Routes>
             </SignedOut>
           } />
         </Routes>

@@ -1,11 +1,16 @@
-import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { UserButton, useUser } from '@clerk/clerk-react'
-import { Menu, X, Home, Users, Calendar, BarChart3, Gift, Bell, Settings, Package, Child, CheckSquare, Users2 } from 'lucide-react'
+import { UserButton, useUser, useClerk } from '@clerk/clerk-react'
+import { Button } from '@/components/ui/button'
+import { Menu, Users, Calendar, DollarSign, Home, X } from '@/lib/icons'
+import { churchIcons } from '@/lib/icons'
+import { NotificationBadge } from '@/components/NotificationBadge'
+// import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 // import { PWAUpdateNotification } from '@/components/PWAUpdateNotification'
 // import { PWAStatus } from '@/components/PWAStatus'
-import { NotificationBadge } from '@/components/NotificationBadge'
-import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount'
+import { useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
+import { getUserRole } from '@/lib/clerk'
 
 interface LayoutProps {
   children: React.ReactNode

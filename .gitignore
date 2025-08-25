@@ -95,3 +95,4 @@ drizzle/
 
 # TypeScript
 *.tsbuildinfo
+.vercel

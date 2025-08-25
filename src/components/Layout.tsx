@@ -50,9 +50,9 @@ export function Layout({ children }: LayoutProps) {
         <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
             <img
-              className="h-8 w-auto"
+              className="h-10 w-auto"
               src="/brand/logo.png"
-              alt="ChurchSuite"
+              alt="ChurchSuite Ghana"
             />
           </div>
           <nav className="flex flex-1 flex-col">
@@ -122,7 +122,14 @@ export function Layout({ children }: LayoutProps) {
                    <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-card px-6 py-6 sm:max-w-sm">
            {/* Close button */}
            <div className="flex items-center justify-between mb-6">
-             <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+             <div className="flex items-center gap-3">
+               <img
+                 className="h-8 w-auto"
+                 src="/brand/logo.png"
+                 alt="ChurchSuite Ghana"
+               />
+               <h2 className="text-lg font-semibold text-gray-900">Menu</h2>
+             </div>
              <Button
                type="button"
                variant="ghost"
@@ -233,6 +240,15 @@ export function Layout({ children }: LayoutProps) {
             <span className="sr-only">Open sidebar</span>
             <Menu className="h-6 w-6" />
           </Button>
+
+          {/* Mobile Logo */}
+          <div className="flex flex-1 justify-center">
+            <img
+              className="h-8 w-auto"
+              src="/brand/logo.png"
+              alt="ChurchSuite Ghana"
+            />
+          </div>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1"></div>

@@ -226,20 +226,6 @@ export function PWAInstallCard() {
     }, 500)
   }
 
-  const showManualInstallInstructions = () => {
-    const userAgent = navigator.userAgent.toLowerCase()
-    
-    if (userAgent.includes('chrome') || userAgent.includes('edge')) {
-      alert('Chrome/Edge Install:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it and select "Install ChurchSuite"\n\nIf no icon appears:\n⋮ (three dots) → "Install ChurchSuite"')
-    } else if (userAgent.includes('safari')) {
-      alert('Safari Install:\n\n1. Click the Share button (📤)\n2. Select "Add to Home Screen"\n3. Tap "Add"')
-    } else if (userAgent.includes('firefox')) {
-      alert('Firefox Install:\n\n1. Click the menu button (☰)\n2. Select "Install App"\n3. Follow the prompts')
-    } else {
-      alert('Mobile Install:\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts')
-    }
-  }
-
   const handleDismiss = () => {
     setIsDismissed(true)
     setShowCard(false)

@@ -41,16 +41,16 @@ export default function Children() {
 
         {/* Main Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="checkin" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1">
+            <TabsTrigger value="checkin" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
               <churchIcons.qrcode className="h-4 w-4" />
               Check-In/Out
             </TabsTrigger>
-            <TabsTrigger value="register" className="flex items-center gap-2">
+            <TabsTrigger value="register" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
               <churchIcons.userPlus className="h-4 w-4" />
               Register Child
             </TabsTrigger>
-            <TabsTrigger value="overview" className="flex items-center gap-2">
+            <TabsTrigger value="overview" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
               <churchIcons.users className="h-4 w-4" />
               Overview
             </TabsTrigger>

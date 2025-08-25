@@ -397,9 +397,9 @@ export default function Attendance() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="records" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="records">Attendance Records</TabsTrigger>
-          {canManageAttendance && <TabsTrigger value="qrcodes">QR Codes</TabsTrigger>}
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 gap-1">
+          <TabsTrigger value="records" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Attendance Records</TabsTrigger>
+          {canManageAttendance && <TabsTrigger value="qrcodes" className="text-xs sm:text-sm px-2 sm:px-3 py-2">QR Codes</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="records" className="space-y-4">

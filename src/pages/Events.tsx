@@ -390,17 +390,17 @@ export default function Events() {
 
       {/* View Toggle */}
       <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'list' | 'calendar' | 'registrations')}>
-        <TabsList>
-          <TabsTrigger value="list" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1">
+          <TabsTrigger value="list" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.members className="h-4 w-4" />
             List View
           </TabsTrigger>
-          <TabsTrigger value="calendar" className="flex items-center gap-2">
+          <TabsTrigger value="calendar" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.calendar className="h-4 w-4" />
             Calendar View
           </TabsTrigger>
           {canManageEvents && (
-            <TabsTrigger value="registrations" className="flex items-center gap-2">
+            <TabsTrigger value="registrations" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
               <churchIcons.attendance className="h-4 w-4" />
               Registrations
             </TabsTrigger>

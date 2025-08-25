@@ -282,16 +282,16 @@ export default function Giving() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="give" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1">
+          <TabsTrigger value="give" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.gift className="h-4 w-4" />
             Give Now
           </TabsTrigger>
-          <TabsTrigger value="history" className="flex items-center gap-2">
+          <TabsTrigger value="history" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.history className="h-4 w-4" />
             History
           </TabsTrigger>
-          <TabsTrigger value="recurring" className="flex items-center gap-2">
+          <TabsTrigger value="recurring" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.repeat className="h-4 w-4" />
             Recurring
           </TabsTrigger>

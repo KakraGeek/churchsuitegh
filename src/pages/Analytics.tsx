@@ -541,13 +541,13 @@ export default function Analytics() {
 
       {/* Charts and Detailed Analytics */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="attendance">Attendance Trends</TabsTrigger>
-          <TabsTrigger value="members">Member Analytics</TabsTrigger>
-          <TabsTrigger value="events">Event Performance</TabsTrigger>
-          <TabsTrigger value="children">Children's Ministry</TabsTrigger>
-          <TabsTrigger value="volunteers">Volunteer Analytics</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Overview</TabsTrigger>
+          <TabsTrigger value="attendance" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Attendance</TabsTrigger>
+          <TabsTrigger value="members" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Members</TabsTrigger>
+          <TabsTrigger value="events" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Events</TabsTrigger>
+          <TabsTrigger value="children" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Children</TabsTrigger>
+          <TabsTrigger value="volunteers" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Volunteers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">

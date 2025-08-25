@@ -336,24 +336,24 @@ export default function Inventory() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 space-y-6">
+    <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Inventory Management</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Track church property, equipment, and manage borrowing system
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
           <Dialog open={showAddItem} onOpenChange={setShowAddItem}>
             <DialogTrigger asChild>
-              <Button>
+              <Button className="w-full sm:w-auto">
                 <churchIcons.item className="mr-2 h-4 w-4" />
                 Add Item
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl mx-4">
               <DialogHeader>
                 <DialogTitle>Add New Inventory Item</DialogTitle>
                 <DialogDescription>
@@ -382,9 +382,9 @@ export default function Inventory() {
                 </div>
                 <div>
                   <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" placeholder="Detailed description of the item" />
+                  <Textarea id="description" placeholder="Detailed description of the item" className="min-h-[80px]" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="serialNumber">Serial Number</Label>
                     <Input id="serialNumber" placeholder="Serial number if applicable" />
@@ -394,7 +394,7 @@ export default function Inventory() {
                     <Input id="location" placeholder="Storage location" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="condition">Condition</Label>
                     <Select>
@@ -414,14 +414,14 @@ export default function Inventory() {
                     <Input id="purchasePrice" type="number" placeholder="0.00" />
                   </div>
                 </div>
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setShowAddItem(false)}>
+                <div className="flex flex-col sm:flex-row justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowAddItem(false)} className="w-full sm:w-auto">
                     Cancel
                   </Button>
                   <Button onClick={() => {
                     // TODO: Implement add item functionality
                     setShowAddItem(false)
-                  }}>
+                  }} className="w-full sm:w-auto">
                     Add Item
                   </Button>
                 </div>
@@ -436,7 +436,7 @@ export default function Inventory() {
                 Manage Categories
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl mx-4">
               <DialogHeader>
                 <DialogTitle>Manage Inventory Categories</DialogTitle>
                 <DialogDescription>
@@ -447,7 +447,7 @@ export default function Inventory() {
                 {/* Create New Category Form */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">Create New Category</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="categoryName">Category Name</Label>
                       <Input 
@@ -475,12 +475,14 @@ export default function Inventory() {
                       placeholder="Brief description of this category"
                       value={newCategory.description}
                       onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
+                      className="min-h-[80px]"
                     />
                   </div>
                   <div className="flex justify-end">
                     <Button 
                       onClick={handleCreateCategory}
                       disabled={!newCategory.name.trim()}
+                      className="w-full sm:w-auto"
                     >
                       <churchIcons.category className="mr-2 h-4 w-4" />
                       Create Category
@@ -493,21 +495,21 @@ export default function Inventory() {
                   <h3 className="text-lg font-medium">Existing Categories</h3>
                   <div className="space-y-3 max-h-60 overflow-y-auto">
                     {inventoryData.categories.map((category) => (
-                      <div key={category.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
+                      <div key={category.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div 
-                            className="w-4 h-4 rounded-full" 
+                            className="w-4 h-4 rounded-full flex-shrink-0" 
                             style={{ backgroundColor: category.color || '#8B5CF6' }}
                           />
-                          <div>
-                            <p className="font-medium">{category.name}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{category.name}</p>
                             {category.description && (
-                              <p className="text-sm text-gray-600">{category.description}</p>
+                              <p className="text-sm text-gray-600 truncate">{category.description}</p>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <Badge variant="outline" className="text-xs">
                             {inventoryData.items.filter(item => item.category === category.name).length} items
                           </Badge>
                           <Button
@@ -538,10 +540,11 @@ export default function Inventory() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              className="pr-20"
             />
             <Button
               size="sm"
-              className="absolute right-1 top-1"
+              className="absolute right-1 top-1 h-8 px-3 text-xs"
               onClick={handleSearch}
             >
               Search
@@ -549,7 +552,7 @@ export default function Inventory() {
           </div>
         </div>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue placeholder="Filter by category" />
           </SelectTrigger>
           <SelectContent>
@@ -564,16 +567,16 @@ export default function Inventory() {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Items</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Items</CardTitle>
             <churchIcons.inventory className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="text-2xl font-bold">{inventoryData.analytics?.totalItems || 0}</div>
-              <div className="text-sm text-gray-600">
+              <div className="text-lg sm:text-2xl font-bold">{inventoryData.analytics?.totalItems || 0}</div>
+              <div className="text-xs sm:text-sm text-gray-600">
                 {inventoryData.analytics?.availableItems || 0} available
               </div>
             </div>
@@ -581,13 +584,13 @@ export default function Inventory() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Borrowed Items</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Borrowed Items</CardTitle>
             <churchIcons.borrow className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="text-2xl font-bold">{inventoryData.analytics?.borrowedItems || 0}</div>
-              <div className="text-sm text-gray-600">
+              <div className="text-lg sm:text-2xl font-bold">{inventoryData.analytics?.borrowedItems || 0}</div>
+              <div className="text-xs sm:text-sm text-gray-600">
                 {inventoryData.analytics?.overdueItems || 0} overdue
               </div>
             </div>
@@ -595,11 +598,11 @@ export default function Inventory() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Value</CardTitle>
             <churchIcons.value className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-lg sm:text-2xl font-bold">
               GHS {(() => {
                 const value = inventoryData.analytics?.totalValue || 0;
                 if (typeof value === 'number') {
@@ -615,11 +618,11 @@ export default function Inventory() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categories</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">Categories</CardTitle>
             <churchIcons.category className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{inventoryData.categories.length}</div>
+            <div className="text-lg sm:text-2xl font-bold">{inventoryData.categories.length}</div>
             <p className="text-xs text-muted-foreground">
               Item categories
             </p>
@@ -629,24 +632,24 @@ export default function Inventory() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="items">Inventory Items</TabsTrigger>
-          <TabsTrigger value="borrowing">Borrowing</TabsTrigger>
-          <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Overview</TabsTrigger>
+          <TabsTrigger value="items" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Items</TabsTrigger>
+          <TabsTrigger value="borrowing" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Borrowing</TabsTrigger>
+          <TabsTrigger value="maintenance" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Maintenance</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
             {/* Recent Borrowings */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <churchIcons.borrow className="h-5 w-5" />
                   Recent Borrowings
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Latest items borrowed from the inventory
                 </CardDescription>
               </CardHeader>
@@ -654,19 +657,19 @@ export default function Inventory() {
                 {inventoryData.analytics?.recentBorrowings && inventoryData.analytics.recentBorrowings.length > 0 ? (
                   <div className="space-y-3">
                     {inventoryData.analytics.recentBorrowings.slice(0, 5).map((borrowing) => (
-                      <div key={borrowing.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <p className="font-medium">{borrowing.itemName}</p>
-                          <p className="text-sm text-gray-600">{borrowing.borrowerName}</p>
+                      <div key={borrowing.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-lg gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{borrowing.itemName}</p>
+                          <p className="text-xs sm:text-sm text-gray-600 truncate">{borrowing.borrowerName}</p>
                         </div>
-                        <Badge variant={borrowing.status === 'overdue' ? 'destructive' : 'secondary'}>
+                        <Badge variant={borrowing.status === 'overdue' ? 'destructive' : 'secondary'} className="flex-shrink-0 text-xs">
                           {borrowing.status}
                         </Badge>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 py-8">No recent borrowings</p>
+                  <p className="text-center text-gray-500 py-8 text-sm">No recent borrowings</p>
                 )}
               </CardContent>
             </Card>
@@ -687,13 +690,13 @@ export default function Inventory() {
                   <div className="space-y-3">
                     {inventoryData.analytics.categoryBreakdown.map((category) => (
                       <div key={category.category} className="flex items-center justify-between">
-                        <span className="capitalize">{category.category}</span>
-                        <Badge variant="outline">{category.count}</Badge>
+                        <span className="capitalize text-sm sm:text-base truncate flex-1">{category.category}</span>
+                        <Badge variant="outline" className="text-xs flex-shrink-0">{category.count}</Badge>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 py-8">No category data available</p>
+                  <p className="text-center text-gray-500 py-8 text-sm">No category data available</p>
                 )}
               </CardContent>
             </Card>
@@ -711,16 +714,16 @@ export default function Inventory() {
             </CardHeader>
             <CardContent>
               {filteredItems.length > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredItems.map((item) => (
                     <Card key={item.id} className="hover:shadow-md transition-shadow">
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-lg">{item.itemName}</CardTitle>
-                            <CardDescription className="capitalize">{item.category}</CardDescription>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base sm:text-lg truncate">{item.itemName}</CardTitle>
+                            <CardDescription className="capitalize text-sm">{item.category}</CardDescription>
                           </div>
-                          <Badge variant={item.isAvailable ? 'default' : 'secondary'}>
+                          <Badge variant={item.isAvailable ? 'default' : 'secondary'} className="ml-2 flex-shrink-0">
                             {item.isAvailable ? 'Available' : 'Borrowed'}
                           </Badge>
                         </div>
@@ -766,12 +769,12 @@ export default function Inventory() {
               ) : (
                 <div className="text-center py-12">
                   <churchIcons.inventory className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
-                  <p className="text-gray-500 mb-4">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No items found</h3>
+                  <p className="text-gray-500 mb-4 text-sm">
                     {searchQuery ? 'No items match your search criteria.' : 'Get started by adding your first inventory item.'}
                   </p>
                   {!searchQuery && (
-                    <Button onClick={() => setShowAddItem(true)}>
+                    <Button onClick={() => setShowAddItem(true)} className="w-full sm:w-auto">
                       <churchIcons.item className="mr-2 h-4 w-4" />
                       Add First Item
                     </Button>
@@ -798,8 +801,8 @@ export default function Inventory() {
             <CardContent>
               {inventoryData.items.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-gray-500 mb-4">No inventory items available to borrow.</p>
-                  <Button onClick={() => setShowAddItem(true)}>
+                  <p className="text-gray-500 mb-4 text-sm">No inventory items available to borrow.</p>
+                  <Button onClick={() => setShowAddItem(true)} className="w-full sm:w-auto">
                     <churchIcons.item className="mr-2 h-4 w-4" />
                     Add First Item
                   </Button>
@@ -818,7 +821,7 @@ export default function Inventory() {
                             .filter(item => item.isAvailable)
                             .map(item => (
                               <SelectItem key={item.id} value={item.id}>
-                                {item.itemName} - {item.category}
+                                <span className="truncate">{item.itemName} - {item.category}</span>
                               </SelectItem>
                             ))}
                         </SelectContent>
@@ -913,10 +916,11 @@ export default function Inventory() {
                       placeholder="Any additional notes about this borrowing..."
                       value={newBorrowing.notes || ''}
                       onChange={(e) => setNewBorrowing(prev => ({ ...prev, notes: e.target.value }))}
+                      className="min-h-[80px]"
                     />
                   </div>
                   
-                  <div className="flex justify-end gap-2">
+                  <div className="flex flex-col sm:flex-row justify-end gap-2">
                     <Button 
                       variant="outline" 
                       onClick={() => setNewBorrowing({
@@ -929,12 +933,14 @@ export default function Inventory() {
                         groupId: null,
                         status: 'borrowed'
                       })}
+                      className="w-full sm:w-auto"
                     >
                       Reset Form
                     </Button>
                     <Button 
                       onClick={handleCreateBorrowing}
                       disabled={!newBorrowing.itemId || !newBorrowing.borrowerId || !newBorrowing.expectedReturnDate}
+                      className="w-full sm:w-auto"
                     >
                       <churchIcons.borrow className="mr-2 h-4 w-4" />
                       Create Borrowing Record
@@ -949,11 +955,11 @@ export default function Inventory() {
             {/* Active Borrowings */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <churchIcons.borrow className="h-5 w-5" />
                   Active Borrowings
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm">
                   Items currently borrowed from the inventory
                 </CardDescription>
               </CardHeader>
@@ -962,18 +968,19 @@ export default function Inventory() {
                   <div className="space-y-3">
                     {inventoryData.activeBorrowings.map((borrowing) => (
                       <div key={borrowing.id} className="p-3 bg-blue-50 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">Item ID: {borrowing.itemId}</span>
-                          <Badge variant="secondary">Active</Badge>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+                          <span className="font-medium text-sm sm:text-base truncate">Item ID: {borrowing.itemId}</span>
+                          <Badge variant="secondary" className="flex-shrink-0 text-xs">Active</Badge>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600 mb-3">
                           Expected return: {new Date(borrowing.expectedReturnDate).toLocaleDateString()}
                         </p>
-                        <div className="flex gap-2 mt-2">
+                        <div className="flex gap-2">
                           <Button 
                             size="sm" 
                             variant="outline"
                             onClick={() => handleReturnItem()}
+                            className="w-full sm:w-auto text-xs"
                           >
                             <churchIcons.return className="mr-2 h-3 w-3" />
                             Return Item
@@ -983,7 +990,7 @@ export default function Inventory() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 py-8">No active borrowings</p>
+                  <p className="text-center text-gray-500 py-8 text-sm">No active borrowings</p>
                 )}
               </CardContent>
             </Card>
@@ -1004,18 +1011,19 @@ export default function Inventory() {
                   <div className="space-y-3">
                     {inventoryData.overdueBorrowings.map((borrowing) => (
                       <div key={borrowing.id} className="p-3 bg-red-50 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">Item ID: {borrowing.itemId}</span>
-                          <Badge variant="destructive">Overdue</Badge>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
+                          <span className="font-medium text-sm sm:text-base truncate">Item ID: {borrowing.itemId}</span>
+                          <Badge variant="destructive" className="flex-shrink-0 text-xs">Overdue</Badge>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600 mb-3">
                           Due: {new Date(borrowing.expectedReturnDate).toLocaleDateString()}
                         </p>
-                        <div className="flex gap-2 mt-2">
+                        <div className="flex gap-2">
                           <Button 
                             size="sm" 
                             variant="outline"
                             onClick={() => handleReturnItem()}
+                            className="w-full sm:w-auto text-xs"
                           >
                             <churchIcons.return className="mr-2 h-3 w-3" />
                             Return Item
@@ -1025,7 +1033,7 @@ export default function Inventory() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 py-8">No overdue items</p>
+                  <p className="text-center text-gray-500 py-8 text-sm">No overdue items</p>
                 )}
               </CardContent>
             </Card>
@@ -1047,11 +1055,11 @@ export default function Inventory() {
             <CardContent>
               <div className="text-center py-12">
                 <churchIcons.maintenance className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No maintenance records</h3>
-                <p className="text-gray-500 mb-4">
+                <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No maintenance records</h3>
+                <p className="text-gray-500 mb-4 text-sm">
                   Maintenance records will appear here when you start tracking repairs and inspections.
                 </p>
-                <Button variant="outline">
+                <Button variant="outline" className="w-full sm:w-auto">
                   <churchIcons.maintenance className="mr-2 h-4 w-4" />
                   Add Maintenance Record
                 </Button>

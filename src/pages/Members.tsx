@@ -422,16 +422,16 @@ export default function Members() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-1">
+          <TabsTrigger value="overview" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.users className="h-4 w-4" />
             Overview
           </TabsTrigger>
-          <TabsTrigger value="families" className="flex items-center gap-2">
+          <TabsTrigger value="families" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.heart className="h-4 w-4" />
             Families
           </TabsTrigger>
-          <TabsTrigger value="ministries" className="flex items-center gap-2">
+          <TabsTrigger value="ministries" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.building className="h-4 w-4" />
             Ministries
           </TabsTrigger>

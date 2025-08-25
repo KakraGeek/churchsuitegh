@@ -250,11 +250,11 @@ export default function Volunteers() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="teams">Ministry Teams</TabsTrigger>
-          <TabsTrigger value="scheduling">Service Scheduling</TabsTrigger>
-          <TabsTrigger value="skills">Skills & Training</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Overview</TabsTrigger>
+          <TabsTrigger value="teams" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Teams</TabsTrigger>
+          <TabsTrigger value="scheduling" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Scheduling</TabsTrigger>
+          <TabsTrigger value="skills" className="text-xs sm:text-sm px-2 sm:px-3 py-2">Skills</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}

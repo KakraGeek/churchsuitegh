@@ -418,16 +418,16 @@ export default function Communications() {
       {/* Main Content */}
       <div className="border-t pt-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6 gap-1">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
               <churchIcons.chart className="h-4 w-4" />
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <TabsTrigger value="notifications" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
               <churchIcons.bell className="h-4 w-4" />
               Notifications
             </TabsTrigger>
-            <TabsTrigger value="templates" className="flex items-center gap-2">
+            <TabsTrigger value="templates" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
               <churchIcons.template className="h-4 w-4" />
               Templates
             </TabsTrigger>

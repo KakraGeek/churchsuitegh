@@ -868,16 +868,16 @@ export default function SundayService() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:grid-cols-3">
-          <TabsTrigger value="browse" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:w-auto lg:grid-cols-3 gap-1">
+          <TabsTrigger value="browse" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.calendar className="h-4 w-4" />
             Browse Programs
           </TabsTrigger>
-          <TabsTrigger value="details" disabled={!selectedProgram} className="flex items-center gap-2">
+          <TabsTrigger value="details" disabled={!selectedProgram} className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.sundayService className="h-4 w-4" />
             Program Details
           </TabsTrigger>
-          <TabsTrigger value="upcoming" className="flex items-center gap-2">
+          <TabsTrigger value="upcoming" className="flex items-center gap-2 text-xs sm:text-sm px-2 sm:px-3 py-2">
             <churchIcons.clock className="h-4 w-4" />
             Upcoming Services
           </TabsTrigger>

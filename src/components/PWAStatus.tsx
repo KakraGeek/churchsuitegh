@@ -18,8 +18,50 @@ export function PWAStatus() {
   const [isOnline, setIsOnline] = useState(navigator.onLine)
   const [showManualInstall, setShowManualInstall] = useState(false)
   const [serviceWorkerStatus, setServiceWorkerStatus] = useState<string>('checking')
+  const [pwaCriteria, setPwaCriteria] = useState<{[key: string]: boolean}>({})
 
   useEffect(() => {
+    // Check all PWA criteria
+    const checkPWACriteria = () => {
+      const criteria = {
+        https: window.location.protocol === 'https:',
+        serviceWorker: 'serviceWorker' in navigator,
+        manifest: !!document.querySelector('link[rel="manifest"]'),
+        standalone: window.matchMedia('(display-mode: standalone)').matches,
+        userEngagement: false, // This is a key missing piece
+        hasIcons: false,
+        validManifest: false
+      }
+
+      // Check if user has engaged with the site (required for PWA install)
+      if (sessionStorage.getItem('user-engaged')) {
+        criteria.userEngagement = true
+      }
+
+      // Check if PWA icons exist
+      try {
+        const manifestLink = document.querySelector('link[rel="manifest"]') as HTMLLinkElement
+        if (manifestLink) {
+          fetch(manifestLink.href)
+            .then(response => response.json())
+            .then(manifest => {
+              criteria.validManifest = !!manifest.name && !!manifest.icons && manifest.icons.length > 0
+              criteria.hasIcons = manifest.icons && manifest.icons.length > 0
+              setPwaCriteria(criteria)
+            })
+            .catch(() => {
+              criteria.validManifest = false
+              setPwaCriteria(criteria)
+            })
+        }
+      } catch (error) {
+        console.error('PWA: Error checking manifest:', error)
+      }
+
+      setPwaCriteria(criteria)
+      return criteria
+    }
+
     // Check service worker status
     const checkServiceWorker = async () => {
       if ('serviceWorker' in navigator) {
@@ -78,11 +120,20 @@ export function PWAStatus() {
     const handleOnline = () => setIsOnline(true)
     const handleOffline = () => setIsOnline(false)
 
+    // Mark user engagement after 5 seconds
+    const markUserEngagement = setTimeout(() => {
+      sessionStorage.setItem('user-engaged', 'true')
+      console.log('PWA: User engagement marked')
+    }, 5000)
+
     // Check if already installed
     checkIfInstalled()
     
     // Check service worker status
     checkServiceWorker()
+    
+    // Check PWA criteria
+    checkPWACriteria()
 
     // Add event listeners
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -91,12 +142,12 @@ export function PWAStatus() {
     window.addEventListener('offline', handleOffline)
 
     // Check PWA criteria after a delay
-    const checkPWACriteria = setTimeout(() => {
+    const checkPWACriteriaDelayed = setTimeout(() => {
       if (!deferredPrompt && !isInstalled) {
         console.log('PWA: No beforeinstallprompt event, checking criteria...')
+        const criteria = checkPWACriteria()
+        console.log('PWA: PWA Criteria:', criteria)
         console.log('PWA: Service Worker status:', serviceWorkerStatus)
-        console.log('PWA: HTTPS:', window.location.protocol === 'https:')
-        console.log('PWA: Manifest:', !!document.querySelector('link[rel="manifest"]'))
         
         // Check if PWA criteria are met
         if (window.matchMedia('(display-mode: standalone)').matches) {
@@ -113,7 +164,8 @@ export function PWAStatus() {
       window.removeEventListener('appinstalled', handleAppInstalled)
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
-      clearTimeout(checkPWACriteria)
+      clearTimeout(checkPWACriteriaDelayed)
+      clearTimeout(markUserEngagement)
     }
   }, [deferredPrompt, isInstalled, serviceWorkerStatus])
 
@@ -191,20 +243,37 @@ export function PWAStatus() {
           className="text-blue-600 border-blue-600 hover:bg-blue-50"
         >
           <Info className="w-4 h-4 mr-1" />
-          How to Install
+          Install App
         </Button>
         
         {showManualInstall && (
-          <div className="absolute top-full right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50">
+          <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-50">
             <div className="text-xs text-gray-600 space-y-2">
-              <h4 className="font-semibold text-gray-800 mb-2">Manual Installation:</h4>
-              <p><strong>Chrome/Edge:</strong> Click ⋮ → "Install ChurchSuite"</p>
-              <p><strong>Safari:</strong> Click Share → "Add to Home Screen"</p>
-              <p><strong>Mobile:</strong> Use browser menu → "Add to Home Screen"</p>
-              <div className="mt-2 pt-2 border-t border-gray-200">
+              <h4 className="font-semibold text-gray-800 mb-2">Install ChurchSuite App</h4>
+              
+              <div className="space-y-2">
+                <p><strong>Chrome/Edge Desktop:</strong></p>
+                <p>1. Click ⋮ (three dots) in address bar</p>
+                <p>2. Select "Install ChurchSuite"</p>
+                
+                <p><strong>Safari (iOS/Mac):</strong></p>
+                <p>1. Click Share button</p>
+                <p>2. Select "Add to Home Screen"</p>
+                
+                <p><strong>Mobile Browsers:</strong></p>
+                <p>1. Open browser menu (⋮ or ⋯)</p>
+                <p>2. Select "Add to Home Screen"</p>
+              </div>
+              
+              <div className="mt-3 pt-2 border-t border-gray-200">
                 <p className="text-xs text-gray-500">
-                  <strong>Status:</strong> SW: {serviceWorkerStatus} | HTTPS: {window.location.protocol === 'https:' ? 'Yes' : 'No'}
+                  <strong>PWA Status:</strong>
                 </p>
+                <p className="text-xs text-gray-500">• Service Worker: {serviceWorkerStatus}</p>
+                <p className="text-xs text-gray-500">• HTTPS: {pwaCriteria.https ? '✅' : '❌'}</p>
+                <p className="text-xs text-gray-500">• Manifest: {pwaCriteria.manifest ? '✅' : '❌'}</p>
+                <p className="text-xs text-gray-500">• Icons: {pwaCriteria.hasIcons ? '✅' : '❌'}</p>
+                <p className="text-xs text-gray-500">• User Engagement: {pwaCriteria.userEngagement ? '✅' : '❌'}</p>
               </div>
             </div>
           </div>

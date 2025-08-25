@@ -14,6 +14,7 @@ export function PWAInstallCard() {
   const [isInstalled, setIsInstalled] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string>('')
 
   useEffect(() => {
     console.log('PWA Install Card: Component mounted, checking PWA status...')
@@ -29,26 +30,48 @@ export function PWAInstallCard() {
         console.log('PWA: App is already installed')
         setIsInstalled(true)
         setShowCard(false)
+        setDebugInfo('Already installed')
         return true
       }
       return false
     }
 
-    // Check PWA criteria
+    // Check PWA criteria with detailed logging
     const checkPWACriteria = () => {
       const hasManifest = !!document.querySelector('link[rel="manifest"]')
       const isHTTPS = window.location.protocol === 'https:'
       const hasServiceWorker = 'serviceWorker' in navigator
       
-      console.log('PWA: Criteria check:', { hasManifest, isHTTPS, hasServiceWorker })
+      // Get more details about what we found
+      const manifestLink = document.querySelector('link[rel="manifest"]')
+      const manifestHref = manifestLink?.getAttribute('href')
+      const currentProtocol = window.location.protocol
+      const currentUrl = window.location.href
+      const userAgent = navigator.userAgent
+      
+      console.log('PWA: Detailed criteria check:', { 
+        hasManifest, 
+        isHTTPS, 
+        hasServiceWorker,
+        manifestHref,
+        currentProtocol,
+        currentUrl,
+        userAgent
+      })
       
       if (hasManifest && isHTTPS && hasServiceWorker) {
-        console.log('PWA: Criteria met, showing install card')
+        console.log('PWA: All criteria met, showing install card')
         setShowCard(true)
+        setDebugInfo('✅ All criteria met - waiting for install prompt')
         return true
       } else {
-        console.log('PWA: Criteria not met')
+        console.log('PWA: Criteria not met - missing:', {
+          manifest: !hasManifest,
+          https: !isHTTPS,
+          serviceWorker: !hasServiceWorker
+        })
         setShowCard(false)
+        setDebugInfo(`❌ Missing: ${!hasManifest ? 'manifest ' : ''}${!isHTTPS ? 'https ' : ''}${!hasServiceWorker ? 'serviceWorker' : ''}`)
         return false
       }
     }
@@ -56,6 +79,7 @@ export function PWAInstallCard() {
     // Handle beforeinstallprompt event (Next.js PWA approach)
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log('PWA: beforeinstallprompt event fired! 🎉')
+      console.log('PWA: Event details:', e)
       
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault()
@@ -64,6 +88,7 @@ export function PWAInstallCard() {
       const promptEvent = e as BeforeInstallPromptEvent
       setDeferredPrompt(promptEvent)
       setShowCard(true)
+      setDebugInfo('🎉 Install prompt captured! Click to install.')
       
       console.log('PWA: Install prompt captured and stored')
     }
@@ -74,6 +99,7 @@ export function PWAInstallCard() {
       setIsInstalled(true)
       setShowCard(false)
       setDeferredPrompt(null)
+      setDebugInfo('App installed successfully!')
     }
 
     // Initial checks
@@ -82,11 +108,38 @@ export function PWAInstallCard() {
     }
 
     // Add event listeners
+    console.log('PWA: Adding event listeners...')
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
     window.addEventListener('appinstalled', handleAppInstalled)
 
+    // Debug: Check if events are being captured
+    setTimeout(() => {
+      console.log('PWA: 5 seconds later - checking state:', {
+        showCard,
+        deferredPrompt: !!deferredPrompt,
+        isInstalled,
+        isDismissed
+      })
+      
+      // Check if service worker is actually registered
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          console.log('PWA: Service Worker registrations:', registrations.length)
+          registrations.forEach((registration, index) => {
+            console.log(`PWA: SW ${index}:`, {
+              active: !!registration.active,
+              waiting: !!registration.waiting,
+              installing: !!registration.installing,
+              scope: registration.scope
+            })
+          })
+        })
+      }
+    }, 5000)
+
     // Cleanup
     return () => {
+      console.log('PWA: Cleaning up event listeners')
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
       window.removeEventListener('appinstalled', handleAppInstalled)
     }
@@ -239,6 +292,11 @@ export function PWAInstallCard() {
                 Maybe Later
               </Button>
             </div>
+            {debugInfo && (
+              <div className="mt-3 text-xs text-gray-500">
+                Debug: {debugInfo}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

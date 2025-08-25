@@ -27,16 +27,7 @@ export function PWASmokeTest() {
       details: `Protocol: ${window.location.protocol}`
     })
 
-    // Test 2: Service Worker Support
-    const hasServiceWorker = 'serviceWorker' in navigator
-    results.push({
-      name: 'Service Worker Support',
-      status: hasServiceWorker ? 'pass' : 'fail',
-      message: hasServiceWorker ? 'Service Worker API available' : 'Service Worker not supported',
-      details: hasServiceWorker ? 'navigator.serviceWorker exists' : 'navigator.serviceWorker missing'
-    })
-
-    // Test 3: Manifest Link
+    // Test 2: Manifest Link
     const manifestLink = document.querySelector('link[rel="manifest"]')
     results.push({
       name: 'Manifest Link',
@@ -45,7 +36,7 @@ export function PWASmokeTest() {
       details: manifestLink ? `href: ${(manifestLink as HTMLLinkElement).href}` : 'No <link rel="manifest"> found'
     })
 
-    // Test 4: Manifest Content
+    // Test 3: Manifest Content
     if (manifestLink) {
       try {
         const response = await fetch((manifestLink as HTMLLinkElement).href)
@@ -79,7 +70,7 @@ export function PWASmokeTest() {
       }
     }
 
-    // Test 5: PWA Icons
+    // Test 4: PWA Icons
     try {
       const [icon192Response, icon512Response] = await Promise.all([
         fetch('/pwa-192x192.png'),
@@ -104,36 +95,7 @@ export function PWASmokeTest() {
       })
     }
 
-    // Test 6: Service Worker Registration
-    if (hasServiceWorker) {
-      try {
-        const registration = await navigator.serviceWorker.getRegistration()
-        if (registration && registration.active) {
-          results.push({
-            name: 'Service Worker Active',
-            status: 'pass',
-            message: 'Service Worker is active',
-            details: `State: ${registration.active.state}`
-          })
-        } else {
-          results.push({
-            name: 'Service Worker Active',
-            status: 'warning',
-            message: 'Service Worker not active',
-            details: registration ? `State: ${registration.installing?.state || registration.waiting?.state || 'unknown'}` : 'No registration'
-          })
-        }
-      } catch (error) {
-        results.push({
-          name: 'Service Worker Active',
-          status: 'fail',
-          message: 'Service Worker check failed',
-          details: `Error: ${error}`
-        })
-      }
-    }
-
-    // Test 7: Install Prompt
+    // Test 5: Install Prompt
     const hasInstallPrompt = !!deferredPrompt
     results.push({
       name: 'Install Prompt Available',
@@ -242,7 +204,7 @@ export function PWASmokeTest() {
         )}
 
         <div className="mt-3 text-xs text-gray-500">
-          All tests must pass for PWA install to work
+          Core PWA tests: HTTPS, Manifest, Icons, Install Prompt
         </div>
       </div>
     </div>

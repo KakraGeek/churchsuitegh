@@ -1,16 +1,11 @@
-import { UserButton, useUser, useClerk } from '@clerk/clerk-react'
-import { Button } from '@/components/ui/button'
-import { Menu, Users, Calendar, DollarSign, Home, X } from '@/lib/icons'
-import { churchIcons } from '@/lib/icons'
+import { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { UserButton, useUser } from '@clerk/clerk-react'
+import { Menu, X, Home, Users, Calendar, BarChart3, Gift, Bell, Settings, Package, Child, CheckSquare, Users2 } from 'lucide-react'
+// import { PWAUpdateNotification } from '@/components/PWAUpdateNotification'
+// import { PWAStatus } from '@/components/PWAStatus'
 import { NotificationBadge } from '@/components/NotificationBadge'
-import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
-import { PWAUpdateNotification } from '@/components/PWAUpdateNotification'
-import { PWAStatus } from '@/components/PWAStatus'
-import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { Link } from 'react-router-dom'
-import { NavLink } from 'react-router-dom'
-import { getUserRole } from '@/lib/clerk'
+import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -216,7 +211,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex flex-1 gap-x-4 self-stretch">
             <div className="flex flex-1"></div>
             <div className="flex items-center gap-x-4">
-              <PWAStatus />
+              {/* <PWAStatus /> */}
               <Button
                 variant="outline"
                 size="sm"
@@ -289,11 +284,11 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </footer>
       
-      {/* PWA Install Prompt */}
-      <PWAInstallPrompt />
+      {/* PWA Install Prompt - temporarily disabled */}
+      {/* <PWAInstallPrompt /> */}
       
-      {/* PWA Update Notification */}
-      <PWAUpdateNotification />
+      {/* PWA Update Notification - temporarily disabled */}
+      {/* <PWAUpdateNotification /> */}
     </div>
   )
 }

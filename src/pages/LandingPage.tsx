@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { churchIcons } from '@/lib/icons'
 import { useNavigate } from 'react-router-dom'
-import { PWAInstallCard } from '@/components/PWAInstallCard'
+// import { PWAInstallCard } from '@/components/PWAInstallCard'
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -191,8 +191,8 @@ export function LandingPage() {
         </div>
       </footer>
 
-      {/* Floating PWA Install Card */}
-      <PWAInstallCard />
+      {/* Floating PWA Install Card - temporarily disabled */}
+      {/* <PWAInstallCard /> */}
     </div>
   )
 }

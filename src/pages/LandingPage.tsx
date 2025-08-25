@@ -2,100 +2,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { churchIcons } from '@/lib/icons'
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { PWAInstallButton } from '@/components/PWAInstallButton'
 
 export function LandingPage() {
   const navigate = useNavigate()
-  const [showInstallButton, setShowInstallButton] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
-
-  // Proper PWA install detection and handling
-  useEffect(() => {
-    console.log('LandingPage: Component mounted')
-    console.log('LandingPage: Viewport width:', window.innerWidth)
-    console.log('LandingPage: User agent:', navigator.userAgent)
-
-    // Check if PWA can be installed
-    const checkPWACriteria = () => {
-      const hasManifest = !!document.querySelector('link[rel="manifest"]')
-      const isHTTPS = window.location.protocol === 'https:'
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      
-      console.log('PWA: Checking criteria:', { hasManifest, isHTTPS, isStandalone })
-      
-      if (hasManifest && isHTTPS && !isStandalone) {
-        console.log('PWA: Criteria met, showing install button')
-        setShowInstallButton(true)
-      } else {
-        console.log('PWA: Criteria not met or already installed')
-        setShowInstallButton(false)
-      }
-    }
-
-    // Listen for the beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('PWA: beforeinstallprompt event fired')
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault()
-      // Stash the event so it can be triggered later
-      setDeferredPrompt(e)
-      // Show the install button (in case it wasn't already shown)
-      setShowInstallButton(true)
-    }
-
-    // Listen for the appinstalled event
-    const handleAppInstalled = () => {
-      console.log('PWA: App was installed')
-      setShowInstallButton(false)
-      setDeferredPrompt(null)
-    }
-
-    // Check PWA criteria immediately
-    checkPWACriteria()
-
-    // Add event listeners
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
-    }
-  }, [])
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      console.log('PWA: No install prompt available, showing manual instructions')
-      // Fallback to manual instructions if no prompt
-      alert('To install ChurchSuite:\n\nChrome/Edge: Click ⋮ → "Install ChurchSuite"\nSafari: Click Share → "Add to Home Screen"\nMobile: Use browser menu → "Add to Home Screen"')
-      return
-    }
-
-    try {
-      console.log('PWA: Triggering install prompt')
-      // Show the install prompt
-      deferredPrompt.prompt()
-      
-      // Wait for the user to respond to the prompt
-      const { outcome } = await deferredPrompt.userChoice
-      console.log('PWA: User choice:', outcome)
-      
-      if (outcome === 'accepted') {
-        console.log('PWA: User accepted the install prompt')
-      } else {
-        console.log('PWA: User dismissed the install prompt')
-      }
-      
-      // Clear the deferredPrompt
-      setDeferredPrompt(null)
-      setShowInstallButton(false)
-    } catch (error) {
-      console.error('PWA: Error during install:', error)
-      // Fallback to manual instructions
-      alert('Install failed. Please use manual installation:\n\nChrome/Edge: Click ⋮ → "Install ChurchSuite"\nSafari: Click Share → "Add to Home Screen"\nMobile: Use browser menu → "Add to Home Screen"')
-    }
-  }
 
   const features = [
     {
@@ -156,15 +66,7 @@ export function LandingPage() {
               </div>
             </div>
             <div className="flex gap-2 sm:gap-3 justify-center sm:justify-end">
-              {showInstallButton && (
-                <Button
-                  onClick={handleInstallClick}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Install App
-                </Button>
-              )}
+              <PWAInstallButton />
               <Button 
                 variant="outline" 
                 onClick={() => navigate('/sign-in')}

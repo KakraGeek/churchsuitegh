@@ -13,6 +13,7 @@ export function PWAInstallCard() {
   const [showCard, setShowCard] = useState(false)
   const [isInstalled, setIsInstalled] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     console.log('PWA Install Card: Component mounted, checking PWA status...')
@@ -37,10 +38,11 @@ export function PWAInstallCard() {
     const checkPWACriteria = () => {
       const hasManifest = !!document.querySelector('link[rel="manifest"]')
       const isHTTPS = window.location.protocol === 'https:'
+      const hasServiceWorker = 'serviceWorker' in navigator
       
-      console.log('PWA: Criteria check:', { hasManifest, isHTTPS })
+      console.log('PWA: Criteria check:', { hasManifest, isHTTPS, hasServiceWorker })
       
-      if (hasManifest && isHTTPS) {
+      if (hasManifest && isHTTPS && hasServiceWorker) {
         console.log('PWA: Criteria met, showing install card')
         setShowCard(true)
         return true
@@ -51,7 +53,7 @@ export function PWAInstallCard() {
       }
     }
 
-    // Handle beforeinstallprompt event
+    // Handle beforeinstallprompt event (Next.js PWA approach)
     const handleBeforeInstallPrompt = (e: Event) => {
       console.log('PWA: beforeinstallprompt event fired! 🎉')
       
@@ -91,14 +93,18 @@ export function PWAInstallCard() {
   }, [])
 
   const handleInstallClick = async () => {
-    console.log('PWA: Install button clicked, attempting direct install...')
+    console.log('PWA: Install button clicked, attempting Next.js PWA approach...')
+    setIsLoading(true)
     
-    // Method 1: Use the captured install prompt if available (most direct)
-    if (deferredPrompt) {
-      try {
+    try {
+      if (deferredPrompt) {
+        // Use the captured install prompt (Next.js PWA approach)
         console.log('PWA: Using captured install prompt for direct install')
+        
+        // Show the install prompt
         deferredPrompt.prompt()
         
+        // Wait for the user to respond to the prompt
         const { outcome } = await deferredPrompt.userChoice
         console.log('PWA: User choice:', outcome)
         
@@ -106,138 +112,62 @@ export function PWAInstallCard() {
           console.log('PWA: User accepted install - PWA installing now!')
           setDeferredPrompt(null)
           setShowCard(false)
+          setIsLoading(false)
           return
         } else {
           console.log('PWA: User dismissed install')
+          setIsLoading(false)
           // Keep the card visible so they can try again
         }
-      } catch (error) {
-        console.error('PWA: Direct install prompt failed:', error)
-      }
-    }
-
-    // Method 2: Try to trigger the install prompt directly
-    console.log('PWA: Attempting to trigger install prompt directly...')
-    
-    try {
-      // Try to dispatch the beforeinstallprompt event to trigger install UI
-      const installEvent = new Event('beforeinstallprompt', { bubbles: true, cancelable: true })
-      window.dispatchEvent(installEvent)
-      
-      // Also try to trigger any hidden install elements
-      const installElements = document.querySelectorAll('[data-pwa-install], .pwa-install, [aria-label*="install"], [title*="install"]')
-      console.log('PWA: Found install elements:', installElements.length)
-      
-      if (installElements.length > 0) {
-        installElements.forEach((element, index) => {
-          try {
-            (element as HTMLElement).click()
-            console.log(`PWA: Clicked install element ${index}`)
-          } catch (error) {
-            console.log(`PWA: Could not click install element ${index}:`, error)
+      } else {
+        // Next.js PWA fallback: Try to trigger install through service worker
+        console.log('PWA: No install prompt, trying service worker approach...')
+        
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          // Send message to service worker to trigger install
+          const messageChannel = new MessageChannel()
+          
+          messageChannel.port1.onmessage = (event) => {
+            if (event.data.type === 'PWA_INSTALL_RESPONSE') {
+              console.log('PWA: Service worker responded to install request')
+              // Try to trigger the install prompt again
+              window.dispatchEvent(new Event('beforeinstallprompt'))
+            }
           }
-        })
-      }
-      
-      // Method 3: Create and trigger a temporary install button
-      const tempInstallButton = document.createElement('button')
-      tempInstallButton.style.display = 'none'
-      tempInstallButton.setAttribute('data-pwa-install', 'true')
-      tempInstallButton.setAttribute('aria-label', 'Install ChurchSuite')
-      tempInstallButton.setAttribute('title', 'Install ChurchSuite')
-      document.body.appendChild(tempInstallButton)
-      
-      // Focus and click to trigger any available install prompts
-      tempInstallButton.focus()
-      tempInstallButton.click()
-      
-      // Remove the temporary button
-      setTimeout(() => {
-        if (document.body.contains(tempInstallButton)) {
-          document.body.removeChild(tempInstallButton)
+          
+          navigator.serviceWorker.controller.postMessage(
+            { type: 'PWA_INSTALL' },
+            [messageChannel.port2]
+          )
+          
+          // Wait a bit for the service worker to respond
+          setTimeout(() => {
+            setIsLoading(false)
+            // Show the most direct manual install option
+            showDirectInstallInstructions()
+          }, 1000)
+        } else {
+          setIsLoading(false)
+          showDirectInstallInstructions()
         }
-      }, 100)
-      
-      // Method 4: Try to show the install prompt in the address bar
-      // This sometimes works by simulating the conditions that trigger the install icon
-      const userAgent = navigator.userAgent.toLowerCase()
-      
-      if (userAgent.includes('chrome') || userAgent.includes('edge')) {
-        // For Chrome/Edge, try to make the install icon appear
-        console.log('PWA: Attempting to show Chrome/Edge install icon...')
-        
-        // Try to trigger the install icon by simulating user engagement
-        const tempDiv = document.createElement('div')
-        tempDiv.style.display = 'none'
-        tempDiv.setAttribute('data-pwa-install-trigger', 'true')
-        document.body.appendChild(tempDiv)
-        
-        // Simulate user interaction that might trigger install icon
-        tempDiv.focus()
-        tempDiv.click()
-        
-        setTimeout(() => {
-          if (document.body.contains(tempDiv)) {
-            document.body.removeChild(tempDiv)
-          }
-        }, 100)
-        
-        // Show success message - the install icon should now appear in address bar
-        alert('✅ Install triggered!\n\nLook for the install icon (📱) in your address bar and click it to install ChurchSuite.')
-        
-      } else if (userAgent.includes('firefox')) {
-        // For Firefox, try to trigger the install option
-        console.log('PWA: Attempting to trigger Firefox install...')
-        alert('✅ Install triggered!\n\nClick the menu button (☰) and look for "Install App" option.')
-        
-      } else if (userAgent.includes('safari')) {
-        // For Safari, show the direct Add to Home Screen option
-        console.log('PWA: Showing Safari install option...')
-        alert('✅ Install option available!\n\nClick the Share button (📤) and select "Add to Home Screen" to install ChurchSuite.')
-        
-      } else {
-        // Generic mobile approach
-        console.log('PWA: Attempting generic mobile install...')
-        alert('✅ Install triggered!\n\nLook for install options in your browser menu (⋮ or ⋯).')
       }
-      
     } catch (error) {
-      console.error('PWA: Direct install attempt failed:', error)
-      
-      // Fallback: Show the most direct manual install option
-      const userAgent = navigator.userAgent.toLowerCase()
-      
-      if (userAgent.includes('chrome') || userAgent.includes('edge')) {
-        alert('Install ChurchSuite:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it to install\n\nIf no icon appears, use:\n⋮ (three dots) → "Install ChurchSuite"')
-      } else if (userAgent.includes('safari')) {
-        alert('Install ChurchSuite:\n\n1. Click Share button (📤)\n2. Select "Add to Home Screen"\n3. Tap "Add"')
-      } else {
-        alert('Install ChurchSuite:\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts')
-      }
+      console.error('PWA: Install error:', error)
+      setIsLoading(false)
+      showDirectInstallInstructions()
     }
+  }
+
+  const showDirectInstallInstructions = () => {
+    const userAgent = navigator.userAgent.toLowerCase()
     
-    // Method 5: Delayed retry to catch any late-appearing install prompts
-    setTimeout(() => {
-      console.log('PWA: Delayed retry to trigger install prompts...')
-      
-      // Try to trigger the beforeinstallprompt event again
-      window.dispatchEvent(new Event('beforeinstallprompt'))
-      
-      // Look for any new install elements that might have appeared
-      const newInstallElements = document.querySelectorAll('[data-pwa-install], .pwa-install, [aria-label*="install"], [title*="install"]')
-      console.log('PWA: Found new install elements after delay:', newInstallElements.length)
-      
-      if (newInstallElements.length > 0) {
-        newInstallElements.forEach((element, index) => {
-          try {
-            (element as HTMLElement).click()
-            console.log(`PWA: Clicked new install element ${index}`)
-          } catch (error) {
-            console.log(`PWA: Could not click new install element ${index}:`, error)
-          }
-        })
-      }
-    }, 1000)
+    if (userAgent.includes('chrome') || userAgent.includes('edge')) {
+      alert('Install ChurchSuite:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it to install\n\nIf no icon appears, use:\n⋮ (three dots) → "Install ChurchSuite"')
+    } else if (userAgent.includes('safari')) {
+      alert('Install ChurchSuite:\n\n1. Click Share button (📤)\n2. Select "Add to Home Screen"\n3. Tap "Add"')
+    } else {
+      alert('Install ChurchSuite:\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts')
+    }
   }
 
   const handleDismiss = () => {
@@ -295,10 +225,11 @@ export function PWAInstallCard() {
             <div className="flex gap-2">
               <Button
                 onClick={handleInstallClick}
+                disabled={isLoading}
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
                 size="sm"
               >
-                Install Now
+                {isLoading ? 'Installing...' : 'Install Now'}
               </Button>
               <Button
                 variant="outline"

@@ -14,144 +14,119 @@ export function PWAInstallCard() {
   const [isInstalled, setIsInstalled] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<string>('')
 
   useEffect(() => {
-    console.log('PWA Install Card: Component mounted, checking PWA status...')
-    
-    // Check if already installed
-    const checkIfInstalled = () => {
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-      const isInApp = (navigator as any).standalone === true
+    try {
+      console.log('PWA Install Card: Component mounted, checking PWA status...')
       
-      console.log('PWA: Install check:', { isStandalone, isInApp })
-      
-      if (isStandalone || isInApp) {
-        console.log('PWA: App is already installed')
-        setIsInstalled(true)
-        setShowCard(false)
-        setDebugInfo('Already installed')
-        return true
+      // Check if already installed
+      const checkIfInstalled = () => {
+        try {
+          const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+          const isInApp = (navigator as any).standalone === true
+          
+          console.log('PWA: Install check:', { isStandalone, isInApp })
+          
+          if (isStandalone || isInApp) {
+            console.log('PWA: App is already installed')
+            setIsInstalled(true)
+            setShowCard(false)
+            return true
+          }
+          return false
+        } catch (error) {
+          console.error('PWA: Error checking if installed:', error)
+          return false
+        }
       }
-      return false
-    }
 
-    // Check PWA criteria with detailed logging
-    const checkPWACriteria = () => {
-      const hasManifest = !!document.querySelector('link[rel="manifest"]')
-      const isHTTPS = window.location.protocol === 'https:'
-      const hasServiceWorker = 'serviceWorker' in navigator
-      
-      // Get more details about what we found
-      const manifestLink = document.querySelector('link[rel="manifest"]')
-      const manifestHref = manifestLink?.getAttribute('href')
-      const currentProtocol = window.location.protocol
-      const currentUrl = window.location.href
-      const userAgent = navigator.userAgent
-      
-      console.log('PWA: Detailed criteria check:', { 
-        hasManifest, 
-        isHTTPS, 
-        hasServiceWorker,
-        manifestHref,
-        currentProtocol,
-        currentUrl,
-        userAgent
-      })
-      
-      if (hasManifest && isHTTPS && hasServiceWorker) {
-        console.log('PWA: All criteria met, showing install card')
-        setShowCard(true)
-        setDebugInfo('✅ All criteria met - waiting for install prompt')
-        return true
-      } else {
-        console.log('PWA: Criteria not met - missing:', {
-          manifest: !hasManifest,
-          https: !isHTTPS,
-          serviceWorker: !hasServiceWorker
-        })
-        setShowCard(false)
-        setDebugInfo(`❌ Missing: ${!hasManifest ? 'manifest ' : ''}${!isHTTPS ? 'https ' : ''}${!hasServiceWorker ? 'serviceWorker' : ''}`)
-        return false
+      // Check PWA criteria
+      const checkPWACriteria = () => {
+        try {
+          const hasManifest = !!document.querySelector('link[rel="manifest"]')
+          const isHTTPS = window.location.protocol === 'https:'
+          const hasServiceWorker = 'serviceWorker' in navigator
+          
+          console.log('PWA: Criteria check:', { hasManifest, isHTTPS, hasServiceWorker })
+          
+          if (hasManifest && isHTTPS && hasServiceWorker) {
+            console.log('PWA: All criteria met, showing install card')
+            setShowCard(true)
+            return true
+          } else {
+            console.log('PWA: Criteria not met')
+            setShowCard(false)
+            return false
+          }
+        } catch (error) {
+          console.error('PWA: Error checking criteria:', error)
+          setShowCard(false)
+          return false
+        }
       }
-    }
 
-    // Handle beforeinstallprompt event (Next.js PWA approach)
-    const handleBeforeInstallPrompt = (e: Event) => {
-      console.log('PWA: beforeinstallprompt event fired! 🎉')
-      console.log('PWA: Event details:', e)
-      
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault()
-      
-      // Stash the event so it can be triggered later
-      const promptEvent = e as BeforeInstallPromptEvent
-      setDeferredPrompt(promptEvent)
-      setShowCard(true)
-      setDebugInfo('🎉 Install prompt captured! Click to install.')
-      
-      console.log('PWA: Install prompt captured and stored')
-    }
+      // Handle beforeinstallprompt event
+      const handleBeforeInstallPrompt = (e: Event) => {
+        try {
+          console.log('PWA: beforeinstallprompt event fired! 🎉')
+          
+          // Prevent the mini-infobar from appearing on mobile
+          e.preventDefault()
+          
+          // Stash the event so it can be triggered later
+          const promptEvent = e as BeforeInstallPromptEvent
+          setDeferredPrompt(promptEvent)
+          setShowCard(true)
+          
+          console.log('PWA: Install prompt captured and stored')
+        } catch (error) {
+          console.error('PWA: Error handling beforeinstallprompt:', error)
+        }
+      }
 
-    // Handle appinstalled event
-    const handleAppInstalled = () => {
-      console.log('PWA: App was installed')
-      setIsInstalled(true)
+      // Handle appinstalled event
+      const handleAppInstalled = () => {
+        try {
+          console.log('PWA: App was installed')
+          setIsInstalled(true)
+          setShowCard(false)
+          setDeferredPrompt(null)
+        } catch (error) {
+          console.error('PWA: Error handling appinstalled:', error)
+        }
+      }
+
+      // Initial checks
+      if (!checkIfInstalled()) {
+        checkPWACriteria()
+      }
+
+      // Add event listeners
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.addEventListener('appinstalled', handleAppInstalled)
+
+      // Cleanup
+      return () => {
+        try {
+          window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+          window.removeEventListener('appinstalled', handleAppInstalled)
+        } catch (error) {
+          console.error('PWA: Error cleaning up event listeners:', error)
+        }
+      }
+    } catch (error) {
+      console.error('PWA: Critical error in useEffect:', error)
       setShowCard(false)
-      setDeferredPrompt(null)
-      setDebugInfo('App installed successfully!')
-    }
-
-    // Initial checks
-    if (!checkIfInstalled()) {
-      checkPWACriteria()
-    }
-
-    // Add event listeners
-    console.log('PWA: Adding event listeners...')
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
-
-    // Debug: Check if events are being captured
-    setTimeout(() => {
-      console.log('PWA: 5 seconds later - checking state:', {
-        showCard,
-        deferredPrompt: !!deferredPrompt,
-        isInstalled,
-        isDismissed
-      })
-      
-      // Check if service worker is actually registered
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          console.log('PWA: Service Worker registrations:', registrations.length)
-          registrations.forEach((registration, index) => {
-            console.log(`PWA: SW ${index}:`, {
-              active: !!registration.active,
-              waiting: !!registration.waiting,
-              installing: !!registration.installing,
-              scope: registration.scope
-            })
-          })
-        })
-      }
-    }, 5000)
-
-    // Cleanup
-    return () => {
-      console.log('PWA: Cleaning up event listeners')
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
     }
   }, [])
 
   const handleInstallClick = async () => {
-    console.log('PWA: Install button clicked, attempting Next.js PWA approach...')
-    setIsLoading(true)
-    
     try {
+      console.log('PWA: Install button clicked, attempting install...')
+      setIsLoading(true)
+      
       if (deferredPrompt) {
-        // Use the captured install prompt (Next.js PWA approach)
+        // Use the captured install prompt
         console.log('PWA: Using captured install prompt for direct install')
         
         // Show the install prompt
@@ -173,36 +148,10 @@ export function PWAInstallCard() {
           // Keep the card visible so they can try again
         }
       } else {
-        // Next.js PWA fallback: Try to trigger install through service worker
-        console.log('PWA: No install prompt, trying service worker approach...')
-        
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          // Send message to service worker to trigger install
-          const messageChannel = new MessageChannel()
-          
-          messageChannel.port1.onmessage = (event) => {
-            if (event.data.type === 'PWA_INSTALL_RESPONSE') {
-              console.log('PWA: Service worker responded to install request')
-              // Try to trigger the install prompt again
-              window.dispatchEvent(new Event('beforeinstallprompt'))
-            }
-          }
-          
-          navigator.serviceWorker.controller.postMessage(
-            { type: 'PWA_INSTALL' },
-            [messageChannel.port2]
-          )
-          
-          // Wait a bit for the service worker to respond
-          setTimeout(() => {
-            setIsLoading(false)
-            // Show the most direct manual install option
-            showDirectInstallInstructions()
-          }, 1000)
-        } else {
-          setIsLoading(false)
-          showDirectInstallInstructions()
-        }
+        // No install prompt available
+        console.log('PWA: No install prompt available')
+        setIsLoading(false)
+        showDirectInstallInstructions()
       }
     } catch (error) {
       console.error('PWA: Install error:', error)
@@ -212,30 +161,42 @@ export function PWAInstallCard() {
   }
 
   const showDirectInstallInstructions = () => {
-    const userAgent = navigator.userAgent.toLowerCase()
-    
-    if (userAgent.includes('chrome') || userAgent.includes('edge')) {
-      alert('Install ChurchSuite:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it to install\n\nIf no icon appears, use:\n⋮ (three dots) → "Install ChurchSuite"')
-    } else if (userAgent.includes('safari')) {
-      alert('Install ChurchSuite:\n\n1. Click Share button (📤)\n2. Select "Add to Home Screen"\n3. Tap "Add"')
-    } else {
-      alert('Install ChurchSuite:\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts')
+    try {
+      const userAgent = navigator.userAgent.toLowerCase()
+      
+      if (userAgent.includes('chrome') || userAgent.includes('edge')) {
+        alert('Install ChurchSuite:\n\n1. Look for the install icon (📱) in your address bar\n2. Click it to install\n\nIf no icon appears, use:\n⋮ (three dots) → "Install ChurchSuite"')
+      } else if (userAgent.includes('safari')) {
+        alert('Install ChurchSuite:\n\n1. Click Share button (📤)\n2. Select "Add to Home Screen"\n3. Tap "Add"')
+      } else {
+        alert('Install ChurchSuite:\n\n1. Open browser menu (⋮ or ⋯)\n2. Look for "Add to Home Screen" or "Install"\n3. Follow the prompts')
+      }
+    } catch (error) {
+      console.error('PWA: Error showing install instructions:', error)
     }
   }
 
   const handleDismiss = () => {
-    setIsDismissed(true)
-    setShowCard(false)
-    // Store dismissal in localStorage to remember user preference
-    localStorage.setItem('pwa-install-dismissed', 'true')
+    try {
+      setIsDismissed(true)
+      setShowCard(false)
+      // Store dismissal in localStorage to remember user preference
+      localStorage.setItem('pwa-install-dismissed', 'true')
+    } catch (error) {
+      console.error('PWA: Error dismissing card:', error)
+    }
   }
 
   // Check if user previously dismissed
   useEffect(() => {
-    const wasDismissed = localStorage.getItem('pwa-install-dismissed') === 'true'
-    if (wasDismissed) {
-      setIsDismissed(true)
-      setShowCard(false)
+    try {
+      const wasDismissed = localStorage.getItem('pwa-install-dismissed') === 'true'
+      if (wasDismissed) {
+        setIsDismissed(true)
+        setShowCard(false)
+      }
+    } catch (error) {
+      console.error('PWA: Error checking dismissal status:', error)
     }
   }, [])
 
@@ -292,11 +253,6 @@ export function PWAInstallCard() {
                 Maybe Later
               </Button>
             </div>
-            {debugInfo && (
-              <div className="mt-3 text-xs text-gray-500">
-                Debug: {debugInfo}
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

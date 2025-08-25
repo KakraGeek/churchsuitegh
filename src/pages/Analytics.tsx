@@ -5,6 +5,7 @@ import html2canvas from 'html2canvas'
 import * as XLSX from 'xlsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -29,6 +30,8 @@ import {
 import { getAttendanceByDate } from '@/lib/api/attendance'
 import { getMemberStatistics } from '@/lib/api/members'
 import { getEventStats } from '@/lib/api/events'
+import { getChildrenAnalytics } from '@/lib/api/children'
+import { getVolunteerAnalytics } from '@/lib/api/volunteers'
 
 
 interface AnalyticsData {
@@ -41,6 +44,36 @@ interface AnalyticsData {
     monthlyGrowth: number
     attendanceGrowth: number
     activeMembers: number
+  }
+  childrenAnalytics?: {
+    totalChildren: number
+    activeChildren: number
+    newChildrenThisMonth: number
+    checkInStats: {
+      totalCheckIns: number
+      currentlyCheckedIn: number
+      averageCheckInDuration: number
+    }
+    guardianStats: {
+      totalGuardians: number
+      activeGuardians: number
+      averageChildrenPerGuardian: number
+    }
+    serviceTypeBreakdown: { serviceType: string; count: number }[]
+    monthlyTrends: { month: string; newChildren: number; checkIns: number }[]
+    ageDistribution: { ageGroup: string; count: number }[]
+    medicalAlerts: { count: number; percentage: number }
+    securityAudit: { totalActions: number; criticalActions: number }
+  }
+  volunteerAnalytics?: {
+    totalVolunteers: number
+    activeVolunteers: number
+    totalTeams: number
+    upcomingServices: number
+    volunteerUtilization: number
+    skillDistribution: { skill: string; count: number }[]
+    teamPerformance: { team: string; memberCount: number; serviceCount: number }[]
+    trainingCompletion: { program: string; completed: number; required: number }[]
   }
 }
 
@@ -92,15 +125,25 @@ export default function Analytics() {
       }
 
       // Fetch all data
-      const [attendanceResult, memberStatsResult] = await Promise.all([
+      const [attendanceResult, memberStatsResult, eventStatsResult, childrenAnalyticsResult, volunteerAnalyticsResult] = await Promise.all([
         getAttendanceByDate(startDate, now),
         getMemberStatistics(),
-        getEventStats()
+        getEventStats(),
+        getChildrenAnalytics(startDate, now),
+        getVolunteerAnalytics()
       ])
 
       if (!attendanceResult.ok || !memberStatsResult.ok) {
         throw new Error('Failed to load analytics data')
       }
+
+      // Log results for debugging
+      console.log('Analytics data results:', {
+        attendance: attendanceResult,
+        members: memberStatsResult,
+        events: eventStatsResult,
+        children: childrenAnalyticsResult
+      })
 
       const attendanceRecords = attendanceResult.data || []
       const memberStats = memberStatsResult.data || { totalMembers: 0, newThisMonth: 0, activeMembers: 0, membersByRole: {} }
@@ -168,11 +211,17 @@ export default function Analytics() {
         serviceTypeBreakdown,
         memberEngagement,
         eventPerformance,
-        growthMetrics
+        growthMetrics,
+        childrenAnalytics: childrenAnalyticsResult.ok ? childrenAnalyticsResult.data as any : undefined,
+        volunteerAnalytics: volunteerAnalyticsResult.ok ? volunteerAnalyticsResult.data : undefined
       })
 
     } catch (err) {
       console.error('Error loading analytics:', err)
+      console.error('Error details:', {
+        message: err instanceof Error ? err.message : 'Unknown error',
+        stack: err instanceof Error ? err.stack : undefined
+      })
       setError('Failed to load analytics data')
     } finally {
       setLoading(false)
@@ -228,6 +277,15 @@ export default function Analytics() {
       pdf.text(`Total Members: ${analyticsData?.growthMetrics.totalMembers || 0}`, 20, 65)
       pdf.text(`Active Members: ${analyticsData?.growthMetrics.activeMembers || 0}`, 20, 75)
       pdf.text(`Total Attendance: ${analyticsData?.growthMetrics.attendanceGrowth || 0}`, 20, 85)
+      if (analyticsData?.childrenAnalytics) {
+        pdf.text(`Total Children: ${analyticsData.childrenAnalytics.totalChildren}`, 20, 95)
+        pdf.text(`Currently Checked In: ${analyticsData.childrenAnalytics.checkInStats.currentlyCheckedIn}`, 20, 105)
+      }
+      if (analyticsData?.volunteerAnalytics) {
+        pdf.text(`Total Volunteers: ${analyticsData.volunteerAnalytics.totalVolunteers}`, 20, 115)
+        pdf.text(`Active Teams: ${analyticsData.volunteerAnalytics.totalTeams}`, 20, 125)
+        pdf.text(`Utilization Rate: ${analyticsData.volunteerAnalytics.volunteerUtilization}%`, 20, 135)
+      }
 
       // Add charts
       pdf.addPage()
@@ -291,6 +349,25 @@ export default function Analytics() {
       // Event performance sheet
       const eventPerformanceWS = XLSX.utils.json_to_sheet(analyticsData.eventPerformance)
       XLSX.utils.book_append_sheet(wb, eventPerformanceWS, 'Event Performance')
+
+      // Children's ministry sheet (if available)
+      if (analyticsData.childrenAnalytics) {
+        const childrenSummaryData = [
+          ['Children\'s Ministry Summary'],
+          ['Total Children', analyticsData.childrenAnalytics.totalChildren],
+          ['Active Children', analyticsData.childrenAnalytics.activeChildren],
+          ['New This Month', analyticsData.childrenAnalytics.newChildrenThisMonth],
+          ['Currently Checked In', analyticsData.childrenAnalytics.checkInStats.currentlyCheckedIn],
+          ['Total Check-ins', analyticsData.childrenAnalytics.checkInStats.totalCheckIns],
+          ['Medical Alerts', analyticsData.childrenAnalytics.medicalAlerts.count],
+          ['Medical Alerts %', `${analyticsData.childrenAnalytics.medicalAlerts.percentage}%`],
+          [''],
+          ['Age Distribution'],
+          ...analyticsData.childrenAnalytics.ageDistribution.map(item => [item.ageGroup, item.count])
+        ]
+        const childrenSummaryWS = XLSX.utils.aoa_to_sheet(childrenSummaryData)
+        XLSX.utils.book_append_sheet(wb, childrenSummaryWS, 'Children\'s Ministry')
+      }
 
       // Save file
       XLSX.writeFile(wb, `church-analytics-data-${dateRange}-${new Date().toISOString().split('T')[0]}.xlsx`)
@@ -469,6 +546,8 @@ export default function Analytics() {
           <TabsTrigger value="attendance">Attendance Trends</TabsTrigger>
           <TabsTrigger value="members">Member Analytics</TabsTrigger>
           <TabsTrigger value="events">Event Performance</TabsTrigger>
+          <TabsTrigger value="children">Children's Ministry</TabsTrigger>
+          <TabsTrigger value="volunteers">Volunteer Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -611,6 +690,322 @@ export default function Analytics() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="children" className="space-y-4">
+          {analyticsData.childrenAnalytics ? (
+            <>
+              {/* Key Children's Ministry Metrics */}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Children</CardTitle>
+                    <churchIcons.children className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.childrenAnalytics.totalChildren}</div>
+                    <p className="text-xs text-muted-foreground">
+                      +{analyticsData.childrenAnalytics.newChildrenThisMonth} this month
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Children</CardTitle>
+                    <churchIcons.active className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.childrenAnalytics.activeChildren}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {formatPercentage(analyticsData.childrenAnalytics.activeChildren, analyticsData.childrenAnalytics.totalChildren)} of total
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Currently Checked In</CardTitle>
+                    <churchIcons.userCheck className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.childrenAnalytics.checkInStats.currentlyCheckedIn}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {analyticsData.childrenAnalytics.checkInStats.totalCheckIns} total check-ins
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Medical Alerts</CardTitle>
+                    <churchIcons.alertTriangle className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{analyticsData.childrenAnalytics.medicalAlerts.count}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {analyticsData.childrenAnalytics.medicalAlerts.percentage}% of children
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Children's Ministry Charts */}
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Age Distribution */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Age Distribution</CardTitle>
+                    <CardDescription>Children by age groups</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={analyticsData.childrenAnalytics.ageDistribution}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="ageGroup" />
+                        <YAxis />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#8B5CF6" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Service Type Breakdown for Children */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Children's Service Participation</CardTitle>
+                    <CardDescription>Check-ins by service type</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={analyticsData.childrenAnalytics.serviceTypeBreakdown}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                          dataKey="count"
+                        >
+                          {analyticsData.childrenAnalytics.serviceTypeBreakdown.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={Object.values(serviceColors)[index % Object.values(serviceColors).length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Monthly Trends for Children */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Children's Ministry Growth Trends</CardTitle>
+                  <CardDescription>New children and check-ins over time</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={analyticsData.childrenAnalytics.monthlyTrends}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Line 
+                        type="monotone" 
+                        dataKey="newChildren" 
+                        stroke="#10B981" 
+                        strokeWidth={2}
+                        dot={{ fill: '#10B981' }}
+                        name="New Children"
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="checkIns" 
+                        stroke="#8B5CF6" 
+                        strokeWidth={2}
+                        dot={{ fill: '#8B5CF6' }}
+                        name="Check-ins"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Guardian and Security Metrics */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Guardian Engagement</CardTitle>
+                    <CardDescription>Guardian participation and family size</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Total Guardians</span>
+                        <span className="text-lg font-bold">{analyticsData.childrenAnalytics.guardianStats.totalGuardians}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Active Guardians</span>
+                        <span className="text-lg font-bold">{analyticsData.childrenAnalytics.guardianStats.activeGuardians}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Avg. Children per Guardian</span>
+                        <span className="text-lg font-bold">{analyticsData.childrenAnalytics.guardianStats.averageChildrenPerGuardian}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Security & Safety</CardTitle>
+                    <CardDescription>Security audit and safety metrics</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Total Security Actions</span>
+                        <span className="text-lg font-bold">{analyticsData.childrenAnalytics.securityAudit.totalActions}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Critical Actions</span>
+                        <span className="text-lg font-bold text-red-600">{analyticsData.childrenAnalytics.securityAudit.criticalActions}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">Avg. Check-in Duration</span>
+                        <span className="text-lg font-bold">{analyticsData.childrenAnalytics.checkInStats.averageCheckInDuration}h</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <churchIcons.children className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h2 className="text-xl font-semibold mb-2">Children's Ministry Data</h2>
+                <p className="text-muted-foreground">No children's ministry data available for the selected period.</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Volunteer Analytics Tab */}
+        <TabsContent value="volunteers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Volunteer Overview</CardTitle>
+              <CardDescription>Key metrics for volunteer management and ministry teams</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analyticsData?.volunteerAnalytics ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Volunteer Metrics */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Volunteer Metrics</h3>
+                    <div className="grid gap-3">
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <span className="text-sm font-medium">Total Volunteers</span>
+                        <span className="text-2xl font-bold text-primary">
+                          {analyticsData.volunteerAnalytics.totalVolunteers}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <span className="text-sm font-medium">Active Volunteers</span>
+                        <span className="text-2xl font-bold text-green-600">
+                          {analyticsData.volunteerAnalytics.activeVolunteers}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                        <span className="text-sm font-medium">Utilization Rate</span>
+                        <span className="text-2xl font-bold text-blue-600">
+                          {analyticsData.volunteerAnalytics.volunteerUtilization}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Team Performance */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Team Performance</h3>
+                    <div className="space-y-3">
+                      {analyticsData.volunteerAnalytics.teamPerformance.map((team, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <div className="font-medium">{team.team}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {team.memberCount} members
+                            </div>
+                          </div>
+                          <Badge variant="outline">
+                            {team.serviceCount} services
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <churchIcons.volunteers className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No volunteer data available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Skills Distribution */}
+          {analyticsData?.volunteerAnalytics?.skillDistribution && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Skill Distribution</CardTitle>
+                <CardDescription>Volunteer skills across different ministry areas</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {analyticsData.volunteerAnalytics.skillDistribution.map((skill, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <span className="font-medium">{skill.skill}</span>
+                      <Badge variant="secondary">{skill.count}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Training Completion */}
+          {analyticsData?.volunteerAnalytics?.trainingCompletion && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Training Completion</CardTitle>
+                <CardDescription>Required and completed training programs</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {analyticsData.volunteerAnalytics.trainingCompletion.map((training, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                                              <span className="font-medium">{training.program}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          {training.completed}/{training.required}
+                        </span>
+                        <Badge variant={training.completed >= training.required ? 'default' : 'secondary'}>
+                          {Math.round((training.completed / training.required) * 100)}%
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

@@ -11,6 +11,10 @@ import Analytics from '@/pages/Analytics'
 import Communications from '@/pages/Communications'
 import Notifications from '@/pages/Notifications'
 import Giving from '@/pages/Giving'
+import Children from '@/pages/Children'
+import Volunteers from '@/pages/Volunteers'
+import Inventory from '@/pages/Inventory'
+import SundayService from './pages/SundayService'
 import { Layout } from '@/components/Layout'
 
 if (!clerkConfig.publishableKey) {
@@ -56,6 +60,10 @@ function App() {
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/giving" element={<Giving />} />
                   <Route path="/checkin" element={<CheckIn />} />
+                  <Route path="/children" element={<Children />} />
+                  <Route path="/volunteers" element={<Volunteers />} />
+                  <Route path="/inventory" element={<Inventory />} />
+                  <Route path="/sunday-service" element={<SundayService />} />
                   {/* Add more routes as we build features */}
                 </Routes>
               </Layout>

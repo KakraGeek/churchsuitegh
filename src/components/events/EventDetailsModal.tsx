@@ -197,7 +197,7 @@ export function EventDetailsModal({ event, open, onOpenChange }: EventDetailsMod
                   <churchIcons.giving className="h-5 w-5 text-gray-400" />
                   <div>
                     <div className="text-sm font-medium">Cost</div>
-                    <div className="text-xs text-gray-600">₵{((event.cost || 0) / 100).toFixed(2)}</div>
+                    <div className="text-xs text-gray-600">GHS {((event.cost || 0) / 100).toFixed(2)}</div>
                   </div>
                 </div>
               )}

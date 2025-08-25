@@ -292,7 +292,7 @@ export function EventCard({ event, onEdit, onDelete, onViewDetails, showActions 
           {(event.cost || 0) > 0 && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <churchIcons.giving className="h-4 w-4 text-gray-500" />
-              <span>₵{((event.cost || 0) / 100).toFixed(2)}</span>
+              <span>GHS {((event.cost || 0) / 100).toFixed(2)}</span>
             </div>
           )}
           

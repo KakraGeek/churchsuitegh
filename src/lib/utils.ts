@@ -21,3 +21,8 @@ export function createSuccessResponse<T>(data: T): ApiResponse<T> {
 export function createErrorResponse(error: string): ApiResponse<never> {
   return { ok: false, error }
 }
+
+// Generate a simple unique ID
+export function generateId(): string {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36)
+}

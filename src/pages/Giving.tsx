@@ -160,7 +160,7 @@ export default function Giving() {
   }
 
   const formatAmount = (amount: number) => {
-    return `₵${(amount / 100).toFixed(2)}` // Convert pesewas to GHS
+    return `GHS ${(amount / 100).toFixed(2)}` // Convert pesewas to GHS
   }
 
   const getStatusColor = (status: string) => {
@@ -446,7 +446,7 @@ export default function Giving() {
                     onClick={() => setPaymentForm(prev => ({ ...prev, amount: option.amount }))}
                     className="h-20 flex flex-col gap-1"
                   >
-                    <span className="text-lg font-bold">₵{option.amount}</span>
+                    <span className="text-lg font-bold">GHS {option.amount}</span>
                     <span className="text-xs">{option.label}</span>
                   </Button>
                 ))}

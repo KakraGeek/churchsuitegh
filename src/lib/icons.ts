@@ -69,13 +69,159 @@ import {
   PieChart,
   Gift,
   Percent,
-  Smartphone,
   Repeat,
   History,
   Heart,
-  Globe,
   Star,
-  Building,
+  
+  // Status & Feedback
+  Check,
+  CheckCircle,
+  CheckCircle2,
+  QrCode,
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  XCircle,
+  Loader2,
+  
+  // UI Elements
+  ThumbsUp,
+  ThumbsDown,
+  Flag,
+  Bookmark,
+  Tag,
+  
+  // Files & Documents
+  File,
+  FileText,
+  Image,
+  
+  // Location & Places
+  MapPin,
+  Navigation,
+  Globe as GlobeIcon,
+  Building as BuildingIcon,
+  Church,
+  
+  // Technology
+  Smartphone as SmartphoneIcon,
+  Monitor,
+  Wifi,
+  WifiOff,
+  Database,
+  Server,
+  
+  // Arrows & Directions
+  ArrowUp,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpDown,
+  ArrowUpRight,
+  ArrowDownLeft,
+  RotateCcw,
+  
+  // Misc
+  Lock,
+  Unlock,
+  Key,
+  Music,
+  Volume2,
+  VolumeX,
+  Camera,
+  Video,
+  Zap,
+  Sparkles,
+  
+  // Additional Icons
+  Award,
+  GraduationCap,
+  Package,
+  FolderOpen,
+  Wrench,
+  ClipboardCheck,
+  Hash,
+  Building2,
+  Activity,
+  LogIn,
+  LogOut,
+  HeartHandshake,
+  BookOpen,
+  Wine,
+} from 'lucide-react'
+
+// Export all icons
+export {
+  // Navigation & Layout
+  Home,
+  Menu,
+  X,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  MoreVertical,
+  Settings,
+  
+  // Users & People
+  User,
+  Users,
+  UserPlus,
+  UserMinus,
+  UserX,
+  UserCheck,
+  UserCog,
+  Crown,
+  Shield,
+  
+  // Actions
+  Plus,
+  Minus,
+  Edit,
+  Trash2,
+  Save,
+  Search,
+  Filter,
+  Download,
+  Upload,
+  Copy,
+  Share,
+  Eye,
+  EyeOff,
+  
+  // Communication
+  Mail,
+  Phone,
+  MessageSquare,
+  MessageCircle,
+  Send,
+  Bell,
+  BellRing,
+  BellOff,
+  
+  // Calendar & Time
+  Calendar,
+  CalendarDays,
+  Clock,
+  Timer,
+  
+  // Finance & Giving
+  DollarSign,
+  CreditCard,
+  Banknote,
+  Wallet,
+  TrendingUp,
+  TrendingDown,
+  BarChart3,
+  PieChart,
+  Gift,
+  Percent,
+  Repeat,
+  History,
+  Heart,
+  Star,
   
   // Status & Feedback
   Check,
@@ -118,6 +264,8 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpDown,
+  ArrowUpRight,
+  ArrowDownLeft,
   RotateCcw,
   
   // Misc
@@ -131,136 +279,22 @@ import {
   Video,
   Zap,
   Sparkles,
-} from 'lucide-react'
-
-// Export all icons
-export {
-  // Navigation & Layout
-  Home,
-  Menu,
-  X,
-  ChevronDown,
-  ChevronUp,
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
-  MoreVertical,
-  Settings,
   
-  // Users & People
-  User,
-  Users,
-  UserPlus,
-  UserMinus,
-  UserX,
-  UserCheck,
-  UserCog,
-  Crown,
-  Shield,
-  
-  // Actions
-  Plus,
-  Minus,
-  Edit,
-  Trash2 as Trash,
-  Save,
-  Search,
-  Filter,
-  Download,
-  Upload,
-  Copy,
-  Share,
-  Eye,
-  EyeOff,
-  
-  // Communication
-  Mail,
-  Phone,
-  MessageSquare,
-  MessageCircle,
-  Send,
-  Bell,
-  BellRing,
-  BellOff,
-  
-  // Calendar & Time
-  Calendar,
-  CalendarDays,
-  Clock,
-  Timer,
-  
-  // Finance & Giving
-  DollarSign,
-  CreditCard,
-  Banknote,
-  Wallet,
-  TrendingUp,
-  TrendingDown,
-  BarChart3 as BarChart,
-  PieChart,
-  
-  // Status & Feedback
-  Check,
-  CheckCircle,
-  CheckCircle2,
-  QrCode,
-  AlertCircle,
-  AlertTriangle,
-  Info,
-  XCircle,
-  Loader2 as Spinner,
-  
-  // UI Elements
-  Star,
-  Heart,
-  ThumbsUp,
-  ThumbsDown,
-  Flag,
-  Bookmark,
-  Tag,
-  
-  // Files & Documents
-  File,
-  FileText,
-  Image,
-  Download as FileDownload,
-  Upload as FileUpload,
-  
-  // Location & Places
-  MapPin,
-  Navigation,
-  Globe,
-  Building,
-  Church,
-  
-  // Technology
-  Smartphone,
-  Monitor,
-  Wifi,
-  WifiOff,
-  Database,
-  Server,
-  
-  // Arrows & Directions
-  ArrowUp,
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUpDown,
-  RotateCcw as Refresh,
-  
-  // Misc
-  Lock,
-  Unlock,
-  Key,
-  Gift,
-  Music,
-  Volume2 as Volume,
-  VolumeX as Mute,
-  Camera,
-  Video,
-  Zap,
-  Sparkles,
+  // Additional Icons
+  Award,
+  GraduationCap,
+  Package,
+  FolderOpen,
+  Wrench,
+  ClipboardCheck,
+  Hash,
+  Building2,
+  Activity,
+  LogIn,
+  LogOut,
+  HeartHandshake,
+  BookOpen,
+  Wine,
 }
 
 // Custom icon variants for church-specific use cases
@@ -296,6 +330,8 @@ export const churchIcons = {
   member: User,
   visitor: UserPlus,
   userPlus: UserPlus,
+  userCheck: UserCheck,
+  userX: UserX,
   
   // Member status
   active: CheckCircle,
@@ -312,6 +348,7 @@ export const churchIcons = {
   communications: MessageSquare,
   attendance: CheckCircle2,
   qrcode: QrCode,
+  children: Users, // Using Users icon for children
   
   // Actions
   add: Plus,
@@ -376,18 +413,53 @@ export const churchIcons = {
   // Giving & Finance
   gift: Gift,
   percent: Percent,
-  smartphone: Smartphone,
+  smartphone: SmartphoneIcon,
   repeat: Repeat,
   history: History,
   heart: Heart,
-  globe: Globe,
+  globe: GlobeIcon,
   star: Star,
-  building: Building,
+  building: BuildingIcon,
   dollarSign: DollarSign,
-  creditCard: CreditCard,
-  trendingUp: TrendingUp,
-  barChart: BarChart3,
   
+  // Volunteer & Team Management
+  volunteers: Users,
+  team: Users,
+  schedule: Calendar,
+  skills: Award,
+  training: GraduationCap,
+  availability: Clock,
+  checkIn: LogIn,
+  checkOut: LogOut,
+  confirm: CheckCircle,
+  reject: XCircle,
+
+  // Inventory Management
+  inventory: Package,
+  item: Package,
+  category: FolderOpen,
+  borrow: ArrowUpRight,
+  return: ArrowDownLeft,
+  overdue: AlertTriangle,
+  maintenance: Wrench,
+  audit: ClipboardCheck,
+  location: MapPin,
+  barcode: QrCode,
+  serial: Hash,
+  supplier: Building2,
+  warranty: Shield,
+  condition: Activity,
+  value: DollarSign,
+  
+  // Service & Worship
+  service: Church,
+  worship: Music,
+  prayer: Heart,
+  sermon: BookOpen,
+  communion: Wine,
+  offering: Gift,
+  benediction: HeartHandshake,
+  sundayService: Calendar,
 } as const
 
 export type ChurchIcon = keyof typeof churchIcons

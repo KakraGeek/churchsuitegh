@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, varchar, boolean, integer } from 'drizzle-orm/pg-core'
+import { pgTable, text, timestamp, uuid, varchar, boolean, integer, decimal, date } from 'drizzle-orm/pg-core'
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
 
@@ -118,6 +118,90 @@ export const eventRegistrations = pgTable('event_registrations', {
   updatedAt: timestamp('updated_at').defaultNow(),
 })
 
+// === CHILD CHECK-IN & SECURITY TABLES ===
+
+// Children table - for child registration and management
+export const children = pgTable('children', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  firstName: varchar('first_name', { length: 100 }).notNull(),
+  lastName: varchar('last_name', { length: 100 }).notNull(),
+  dateOfBirth: timestamp('date_of_birth').notNull(),
+  gender: varchar('gender', { length: 20 }).notNull(), // male, female, other
+  photoUrl: varchar('photo_url', { length: 500 }), // Optional photo for identification
+  medicalNotes: text('medical_notes'), // Allergies, medical conditions, special needs
+  emergencyNotes: text('emergency_notes'), // Special instructions for emergencies
+  isActive: boolean('is_active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Child Guardians - links children to authorized adults
+export const childGuardians = pgTable('child_guardians', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  childId: uuid('child_id').references(() => children.id).notNull(),
+  guardianId: uuid('guardian_id').references(() => members.id).notNull(),
+  relationship: varchar('relationship', { length: 50 }).notNull(), // parent, grandparent, legal guardian, etc.
+  isPrimary: boolean('is_primary').default(false), // Primary contact for emergencies
+  canCheckIn: boolean('can_check_in').default(true), // Can check child in/out
+  canCheckOut: boolean('can_check_out').default(true), // Can check child out
+  emergencyContact: boolean('is_emergency_contact').default(false), // Emergency contact
+  notificationPreferences: varchar('notification_preferences', { length: 100 }).default('sms,email'), // sms,email,push
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Child Check-in Records - tracks all check-ins and check-outs
+export const childCheckIns = pgTable('child_check_ins', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  childId: uuid('child_id').references(() => children.id).notNull(),
+  eventId: uuid('event_id').references(() => events.id), // Optional - specific event
+  serviceType: varchar('service_type', { length: 50 }).notNull(), // sunday-service, children-church, bible-study, etc.
+  serviceDate: timestamp('service_date').notNull(),
+  checkInTime: timestamp('check_in_time').notNull(),
+  checkOutTime: timestamp('check_out_time'), // Null until checked out
+  checkInMethod: varchar('check_in_method', { length: 20 }).default('qr-code'), // qr-code, manual, admin
+  qrCodeId: varchar('qr_code_id', { length: 100 }), // QR code used for check-in
+  location: varchar('location', { length: 200 }), // Where they checked in (e.g., "Children's Church", "Nursery")
+  checkedInBy: uuid('checked_in_by').references(() => members.id).notNull(), // Who checked them in
+  checkedOutBy: uuid('checked_out_by').references(() => members.id), // Who checked them out
+  notes: text('notes'), // Any special notes or instructions
+  status: varchar('status', { length: 20 }).default('checked-in'), // checked-in, checked-out, emergency
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Child QR Codes - specific QR codes for child check-ins
+export const childQRCodes = pgTable('child_qr_codes', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  qrCodeId: varchar('qr_code_id', { length: 100 }).notNull().unique(), // Unique QR identifier
+  childId: uuid('child_id').references(() => children.id).notNull(), // Specific child this QR is for
+  eventId: uuid('event_id').references(() => events.id), // Optional - specific event
+  serviceType: varchar('service_type', { length: 50 }).notNull(), // sunday-service, children-church, etc.
+  serviceDate: timestamp('service_date').notNull(), // Date this QR is valid for
+  location: varchar('location', { length: 200 }), // Physical location (e.g., "Children's Church")
+  isActive: boolean('is_active').default(true), // Can disable QR codes
+  expiresAt: timestamp('expires_at'), // Optional expiration time
+  maxUses: integer('max_uses').default(1), // Usually 1 for child check-ins
+  currentUses: integer('current_uses').default(0), // Track usage
+  createdBy: uuid('created_by').references(() => members.id).notNull(), // Who created the QR code
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Child Security Audit Log - tracks all security-related actions
+export const childSecurityAudit = pgTable('child_security_audit', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  childId: uuid('child_id').references(() => children.id).notNull(),
+  action: varchar('action', { length: 100 }).notNull(), // check-in, check-out, guardian-added, photo-updated, etc.
+  performedBy: uuid('performed_by').references(() => members.id).notNull(), // Who performed the action
+  actionDetails: text('action_details'), // JSON or text details about the action
+  ipAddress: varchar('ip_address', { length: 45 }), // IPv4 or IPv6 address
+  userAgent: text('user_agent'), // Browser/device information
+  location: varchar('location', { length: 200 }), // Physical location if available
+  severity: varchar('severity', { length: 20 }).default('info'), // info, warning, critical
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
 // Drizzle Zod schemas for validation
 export const insertMemberSchema = createInsertSchema(members, {
   email: z.string().email(),
@@ -179,6 +263,59 @@ export const insertEventRegistrationSchema = createInsertSchema(eventRegistratio
 
 export const selectEventRegistrationSchema = createSelectSchema(eventRegistrations)
 
+// === CHILD CHECK-IN ZOD SCHEMAS ===
+
+export const insertChildSchema = createInsertSchema(children, {
+  gender: z.enum(['male', 'female', 'other']),
+  dateOfBirth: z.date(),
+  photoUrl: z.string().url().optional(),
+  medicalNotes: z.string().optional(),
+  emergencyNotes: z.string().optional(),
+})
+
+export const selectChildSchema = createSelectSchema(children)
+
+export const insertChildGuardianSchema = createInsertSchema(childGuardians, {
+  relationship: z.enum(['parent', 'grandparent', 'legal-guardian', 'relative', 'other']),
+  isPrimary: z.boolean().default(false),
+  canCheckIn: z.boolean().default(true),
+  canCheckOut: z.boolean().default(true),
+  emergencyContact: z.boolean().default(false),
+  notificationPreferences: z.string().default('sms,email'),
+})
+
+export const selectChildGuardianSchema = createSelectSchema(childGuardians)
+
+export const insertChildCheckInSchema = createInsertSchema(childCheckIns, {
+  serviceType: z.enum(['sunday-service', 'children-church', 'bible-study', 'prayer-meeting', 'special-event', 'outreach', 'fellowship', 'conference', 'nursery', 'youth-group']),
+  checkInMethod: z.enum(['qr-code', 'manual', 'admin']).default('qr-code'),
+  status: z.enum(['checked-in', 'checked-out', 'emergency']).default('checked-in'),
+  notes: z.string().optional(),
+})
+
+export const selectChildCheckInSchema = createSelectSchema(childCheckIns)
+
+export const insertChildQRCodeSchema = createInsertSchema(childQRCodes, {
+  serviceType: z.enum(['sunday-service', 'children-church', 'bible-study', 'prayer-meeting', 'special-event', 'outreach', 'fellowship', 'conference', 'nursery', 'youth-group']),
+  qrCodeId: z.string().min(1),
+  isActive: z.boolean().default(true),
+  maxUses: z.number().min(1).default(1),
+  currentUses: z.number().min(0).default(0),
+})
+
+export const selectChildQRCodeSchema = createSelectSchema(childQRCodes)
+
+export const insertChildSecurityAuditSchema = createInsertSchema(childSecurityAudit, {
+  action: z.string().min(1),
+  actionDetails: z.string().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+  location: z.string().optional(),
+  severity: z.enum(['info', 'warning', 'critical']).default('info'),
+})
+
+export const selectChildSecurityAuditSchema = createSelectSchema(childSecurityAudit)
+
 // TypeScript types
 export type Member = z.infer<typeof selectMemberSchema>
 export type NewMember = z.infer<typeof insertMemberSchema>
@@ -201,6 +338,19 @@ export type NotificationRecipient = z.infer<typeof selectNotificationRecipientSc
 export type NewNotificationRecipient = z.infer<typeof insertNotificationRecipientSchema>
 export type NotificationPreferences = z.infer<typeof selectNotificationPreferencesSchema>
 export type NewNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>
+
+// === CHILD CHECK-IN TYPES ===
+
+export type Child = z.infer<typeof selectChildSchema>
+export type NewChild = z.infer<typeof insertChildSchema>
+export type ChildGuardian = z.infer<typeof selectChildGuardianSchema>
+export type NewChildGuardian = z.infer<typeof insertChildGuardianSchema>
+export type ChildCheckIn = z.infer<typeof selectChildCheckInSchema>
+export type NewChildCheckIn = z.infer<typeof insertChildCheckInSchema>
+export type ChildQRCode = z.infer<typeof selectChildQRCodeSchema>
+export type NewChildQRCode = z.infer<typeof insertChildQRCodeSchema>
+export type ChildSecurityAudit = z.infer<typeof selectChildSecurityAuditSchema>
+export type NewChildSecurityAudit = z.infer<typeof insertChildSecurityAuditSchema>
 
 // In-App Communications System Tables
 
@@ -657,3 +807,372 @@ export const insertMemberMinistrySchema = createInsertSchema(memberMinistries)
 export const selectMemberMinistrySchema = createSelectSchema(memberMinistries)
 export type NewMemberMinistry = typeof memberMinistries.$inferInsert
 export type MemberMinistry = typeof memberMinistries.$inferSelect
+
+// === VOLUNTEER & MINISTRY TEAM MANAGEMENT ===
+
+// Ministry Teams - Organized groups for different church functions
+export const ministryTeams = pgTable('ministry_teams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  teamName: varchar('team_name', { length: 100 }).notNull(),
+  description: text('description'),
+  teamType: varchar('team_type', { length: 50 }).notNull(), // worship, children, youth, hospitality, technical, etc.
+  leaderId: uuid('leader_id').references(() => members.id), // Team leader
+  coLeaderId: uuid('co_leader_id').references(() => members.id), // Co-leader if applicable
+  maxMembers: integer('max_members'), // Maximum team size
+  currentMembers: integer('current_members').default(0),
+  meetingSchedule: varchar('meeting_schedule', { length: 200 }), // e.g., "Every Sunday 8:00 AM"
+  meetingLocation: varchar('meeting_location', { length: 200 }),
+  isActive: boolean('is_active').default(true),
+  color: varchar('color', { length: 7 }).default('#8B5CF6'), // Team color for UI
+  imageUrl: varchar('image_url', { length: 500 }),
+  createdBy: uuid('created_by').references(() => members.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Team Members - Individual volunteers within teams
+export const teamMembers = pgTable('team_members', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  teamId: uuid('team_id').references(() => ministryTeams.id).notNull(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  role: varchar('role', { length: 100 }).notNull(), // Team Leader, Member, Trainee, etc.
+  startDate: timestamp('start_date').notNull(),
+  endDate: timestamp('end_date'), // Null if currently active
+  isActive: boolean('is_active').default(true),
+  commitmentLevel: varchar('commitment_level', { length: 20 }).default('regular'), // regular, occasional, seasonal
+  hoursPerWeek: integer('hours_per_week'), // Estimated time commitment
+  skills: varchar('skills', { length: 500 }), // JSON string of skills
+  trainingCompleted: varchar('training_completed', { length: 500 }), // JSON string of completed training
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Service Schedules - Specific service assignments for volunteers
+export const serviceSchedules = pgTable('service_schedules', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  teamId: uuid('team_id').references(() => ministryTeams.id).notNull(),
+  eventId: uuid('event_id').references(() => events.id), // Optional - specific event
+  serviceDate: timestamp('service_date').notNull(),
+  serviceType: varchar('service_type', { length: 50 }).notNull(), // sunday-service, special-event, etc.
+  startTime: timestamp('start_time').notNull(),
+  endTime: timestamp('end_time').notNull(),
+  location: varchar('location', { length: 200 }),
+  requiredMembers: integer('required_members').notNull(), // How many volunteers needed
+  assignedMembers: integer('assigned_members').default(0),
+  status: varchar('status', { length: 20 }).default('scheduled'), // scheduled, in-progress, completed, cancelled
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Service Assignments - Individual volunteer assignments for specific services
+export const serviceAssignments = pgTable('service_assignments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  scheduleId: uuid('schedule_id').references(() => serviceSchedules.id).notNull(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  role: varchar('role', { length: 100 }).notNull(), // Specific role for this service
+  isConfirmed: boolean('is_confirmed').default(false), // Volunteer has confirmed
+  confirmedAt: timestamp('confirmed_at'),
+  checkInTime: timestamp('check_in_time'),
+  checkOutTime: timestamp('check_out_time'),
+  status: varchar('status', { length: 20 }).default('assigned'), // assigned, confirmed, checked-in, completed, no-show
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Volunteer Skills - Track individual skills and certifications
+export const volunteerSkills = pgTable('volunteer_skills', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  skillName: varchar('skill_name', { length: 100 }).notNull(),
+  skillCategory: varchar('skill_category', { length: 50 }).notNull(), // technical, musical, teaching, hospitality, etc.
+  proficiencyLevel: varchar('proficiency_level', { length: 20 }).default('beginner'), // beginner, intermediate, advanced, expert
+  yearsOfExperience: integer('years_of_experience'),
+  certificationName: varchar('certification_name', { length: 200 }),
+  certificationDate: timestamp('certification_date'),
+  certificationExpiry: timestamp('certification_expiry'),
+  isVerified: boolean('is_verified').default(false), // Skill has been verified by admin
+  verifiedBy: uuid('verified_by').references(() => members.id),
+  verifiedAt: timestamp('verified_at'),
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Training Programs - Track volunteer training and development
+export const trainingPrograms = pgTable('training_programs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  programName: varchar('program_name', { length: 200 }).notNull(),
+  description: text('description'),
+  category: varchar('category', { length: 50 }).notNull(), // safety, ministry-specific, general, etc.
+  duration: varchar('duration', { length: 100 }), // e.g., "2 hours", "1 day"
+  isRequired: boolean('is_required').default(false), // Required for certain roles
+  isRecurring: boolean('is_recurring').default(false), // Needs to be renewed periodically
+  renewalPeriod: integer('renewal_period'), // Months between renewals
+  createdBy: uuid('created_by').references(() => members.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Training Records - Track individual training completion
+export const trainingRecords = pgTable('training_records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  programId: uuid('program_id').references(() => trainingPrograms.id).notNull(),
+  completionDate: timestamp('completion_date').notNull(),
+  expiryDate: timestamp('expiry_date'), // When training needs renewal
+  score: integer('score'), // If applicable
+  maxScore: integer('max_score'), // If applicable
+  certificateUrl: varchar('certificate_url', { length: 500 }),
+  isVerified: boolean('is_verified').default(false),
+  verifiedBy: uuid('verified_by').references(() => members.id),
+  verifiedAt: timestamp('verified_at'),
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Volunteer Availability - Track when volunteers are available
+export const volunteerAvailability = pgTable('volunteer_availability', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  memberId: uuid('member_id').references(() => members.id).notNull(),
+  dayOfWeek: varchar('day_of_week', { length: 20 }).notNull(), // monday, tuesday, etc.
+  startTime: varchar('start_time', { length: 10 }).notNull(), // HH:MM format
+  endTime: varchar('end_time', { length: 10 }).notNull(), // HH:MM format
+  isAvailable: boolean('is_available').default(true),
+  notes: text('notes'),
+  createdBy: uuid('created_by').references(() => members.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+})
+
+// Export schemas for volunteer tables
+export const insertMinistryTeamSchema = createInsertSchema(ministryTeams)
+export const selectMinistryTeamSchema = createSelectSchema(ministryTeams)
+export type NewMinistryTeam = typeof ministryTeams.$inferInsert
+export type MinistryTeam = typeof ministryTeams.$inferSelect
+
+export const insertTeamMemberSchema = createInsertSchema(teamMembers)
+export const selectTeamMemberSchema = createSelectSchema(teamMembers)
+export type NewTeamMember = typeof teamMembers.$inferInsert
+export type TeamMember = typeof teamMembers.$inferSelect
+
+export const insertServiceScheduleSchema = createInsertSchema(serviceSchedules)
+export const selectServiceScheduleSchema = createSelectSchema(serviceSchedules)
+export type NewServiceSchedule = typeof serviceSchedules.$inferInsert
+export type ServiceSchedule = typeof serviceSchedules.$inferSelect
+
+export const insertServiceAssignmentSchema = createInsertSchema(serviceAssignments)
+export const selectServiceAssignmentSchema = createSelectSchema(serviceAssignments)
+export type NewServiceAssignment = typeof serviceAssignments.$inferInsert
+export type ServiceAssignment = typeof serviceAssignments.$inferSelect
+
+export const insertVolunteerSkillSchema = createInsertSchema(volunteerSkills)
+export const selectVolunteerSkillSchema = createSelectSchema(volunteerSkills)
+export type NewVolunteerSkill = typeof volunteerSkills.$inferInsert
+export type VolunteerSkill = typeof volunteerSkills.$inferSelect
+
+export const insertTrainingProgramSchema = createInsertSchema(trainingPrograms)
+export const selectTrainingProgramSchema = createSelectSchema(trainingPrograms)
+export type NewTrainingProgram = typeof trainingPrograms.$inferInsert
+export type TrainingProgram = typeof trainingPrograms.$inferSelect
+
+export const insertTrainingRecordSchema = createInsertSchema(trainingRecords)
+export const selectTrainingRecordSchema = createSelectSchema(trainingRecords)
+export type NewTrainingRecord = typeof trainingRecords.$inferInsert
+export type TrainingRecord = typeof trainingRecords.$inferSelect
+
+export const insertVolunteerAvailabilitySchema = createInsertSchema(volunteerAvailability)
+export const selectVolunteerAvailabilitySchema = createSelectSchema(volunteerAvailability)
+export type NewVolunteerAvailability = typeof volunteerAvailability.$inferInsert
+export type VolunteerAvailability = typeof volunteerAvailability.$inferSelect
+
+// === INVENTORY MANAGEMENT ===
+
+export const inventoryItems = pgTable('inventory_items', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  itemName: varchar('item_name', { length: 200 }).notNull(),
+  description: text('description'),
+  category: varchar('category', { length: 100 }).notNull(), // equipment, literature, furniture, electronics, etc.
+  itemType: varchar('item_type', { length: 100 }).notNull(), // specific type within category
+  serialNumber: varchar('serial_number', { length: 100 }),
+  barcode: varchar('barcode', { length: 100 }),
+  location: varchar('location', { length: 200 }),
+  condition: varchar('condition', { length: 50 }).default('good'), // new, good, fair, poor, damaged
+  purchaseDate: timestamp('purchase_date'),
+  purchasePrice: decimal('purchase_price', { precision: 10, scale: 2 }),
+  supplier: varchar('supplier', { length: 200 }),
+  warrantyExpiry: timestamp('warranty_expiry'),
+  isAvailable: boolean('is_available').default(true),
+  isActive: boolean('is_active').default(true),
+  notes: text('notes'),
+  imageUrl: varchar('image_url', { length: 500 }),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+export const inventoryCategories = pgTable('inventory_categories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 100 }).notNull(),
+  description: text('description'),
+  color: varchar('color', { length: 7 }).default('#8B5CF6'),
+  icon: varchar('icon', { length: 50 }),
+  isActive: boolean('is_active').default(true),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+export const borrowingRecords = pgTable('borrowing_records', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  itemId: uuid('item_id').references(() => inventoryItems.id).notNull(),
+  borrowerId: uuid('borrower_id').references(() => members.id).notNull(),
+  groupId: uuid('group_id').references(() => ministryTeams.id), // ministry team or group
+  borrowedAt: timestamp('borrowed_at').defaultNow().notNull(),
+  expectedReturnDate: timestamp('expected_return_date').notNull(),
+  actualReturnDate: timestamp('actual_return_date'),
+  status: varchar('status', { length: 50 }).default('borrowed'), // borrowed, returned, overdue, lost
+  conditionWhenBorrowed: varchar('condition_when_borrowed', { length: 50 }).default('good'),
+  conditionWhenReturned: varchar('condition_when_returned', { length: 50 }),
+  notes: text('notes'),
+  approvedBy: uuid('approved_by').references(() => members.id),
+  approvedAt: timestamp('approved_at'),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+export const inventoryMaintenance = pgTable('inventory_maintenance', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  itemId: uuid('item_id').references(() => inventoryItems.id).notNull(),
+  maintenanceType: varchar('maintenance_type', { length: 100 }).notNull(), // repair, cleaning, inspection, upgrade
+  description: text('description').notNull(),
+  performedBy: uuid('performed_by').references(() => members.id).notNull(),
+  performedAt: timestamp('performed_at').defaultNow().notNull(),
+  cost: decimal('cost', { precision: 10, scale: 2 }),
+  nextMaintenanceDate: timestamp('next_maintenance_date'),
+  status: varchar('status', { length: 50 }).default('completed'), // scheduled, in-progress, completed
+  notes: text('notes'),
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+export const inventoryAudit = pgTable('inventory_audit', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  itemId: uuid('item_id').references(() => inventoryItems.id).notNull(),
+  auditType: varchar('audit_type', { length: 100 }).notNull(), // physical count, condition check, location verification
+  auditorId: uuid('auditor_id').references(() => members.id).notNull(),
+  auditedAt: timestamp('audited_at').defaultNow().notNull(),
+  previousValue: text('previous_value'), // JSON string of previous state
+  newValue: text('new_value'), // JSON string of new state
+  discrepancies: text('discrepancies'),
+  recommendations: text('recommendations'),
+  status: varchar('status', { length: 50 }).default('completed'), // pending, in-progress, completed
+  createdBy: uuid('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+// === INVENTORY MANAGEMENT SCHEMAS ===
+
+export const insertInventoryItemSchema = createInsertSchema(inventoryItems)
+export const selectInventoryItemSchema = createSelectSchema(inventoryItems)
+export type NewInventoryItem = typeof inventoryItems.$inferInsert
+export type InventoryItem = typeof inventoryItems.$inferSelect
+
+export const insertInventoryCategorySchema = createInsertSchema(inventoryCategories)
+export const selectInventoryCategorySchema = createSelectSchema(inventoryCategories)
+export type NewInventoryCategory = typeof inventoryCategories.$inferInsert
+export type InventoryCategory = typeof inventoryCategories.$inferSelect
+
+export const insertBorrowingRecordSchema = createInsertSchema(borrowingRecords)
+export const selectBorrowingRecordSchema = createSelectSchema(borrowingRecords)
+export type NewBorrowingRecord = typeof borrowingRecords.$inferInsert
+export type BorrowingRecord = typeof borrowingRecords.$inferSelect
+
+export const insertInventoryMaintenanceSchema = createInsertSchema(inventoryMaintenance)
+export const selectInventoryMaintenanceSchema = createSelectSchema(inventoryMaintenance)
+export type NewInventoryMaintenance = typeof inventoryMaintenance.$inferInsert
+export type InventoryMaintenance = typeof inventoryMaintenance.$inferSelect
+
+export const insertInventoryAuditSchema = createInsertSchema(inventoryAudit)
+export const selectInventoryAuditSchema = createSelectSchema(inventoryAudit)
+export type NewInventoryAudit = typeof inventoryAudit.$inferInsert
+export type InventoryAudit = typeof inventoryAudit.$inferSelect
+
+// === SUNDAY SERVICE MANAGEMENT ===
+
+// Sunday Service Programs - main service program information
+export const sundayServicePrograms = pgTable('sunday_service_programs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  serviceDate: date('service_date').notNull().unique(), // Each date can only have one program
+  title: varchar('title', { length: 200 }).notNull(), // e.g., "Sunday Service", "Communion Service"
+  theme: varchar('theme', { length: 200 }), // Service theme or sermon topic
+  preacher: varchar('preacher', { length: 200 }), // Name of the preacher
+  scriptureReading: text('scripture_reading'), // Bible passages for the service
+  announcements: text('announcements'), // General announcements
+  specialNotes: text('special_notes'), // Any special instructions or notes
+  isActive: boolean('is_active').default(true),
+  createdBy: uuid('created_by').references(() => members.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+// Service Songs - songs and hymns for each service
+export const serviceSongs = pgTable('service_songs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  programId: uuid('program_id').references(() => sundayServicePrograms.id, { onDelete: 'cascade' }).notNull(),
+  songTitle: varchar('song_title', { length: 200 }).notNull(),
+  songType: varchar('song_type', { length: 50 }).default('hymn'), // hymn, worship, special, offering, etc.
+  lyrics: text('lyrics').notNull(), // Full song lyrics
+  songNumber: varchar('song_number', { length: 50 }), // Hymn book number if applicable
+  composer: varchar('composer', { length: 200 }), // Song composer/author
+  keySignature: varchar('key_signature', { length: 20 }), // Musical key (C, G, etc.)
+  tempo: varchar('tempo', { length: 50 }), // Tempo indication
+  orderInService: integer('order_in_service').notNull(), // Sequence in the service
+  isActive: boolean('is_active').default(true),
+  createdBy: uuid('created_by').references(() => members.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+// Service Program Sections - different parts of the service
+export const serviceProgramSections = pgTable('service_program_sections', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  programId: uuid('program_id').references(() => sundayServicePrograms.id, { onDelete: 'cascade' }).notNull(),
+  sectionTitle: varchar('section_title', { length: 200 }).notNull(), // e.g., "Opening Prayer", "Sermon", "Benediction"
+  sectionType: varchar('section_type', { length: 50 }).notNull(), // prayer, scripture, sermon, song, announcement, etc.
+  description: text('description'), // Details about this section
+  duration: integer('duration'), // Estimated duration in minutes
+  orderInService: integer('order_in_service').notNull(), // Sequence in the service
+  isActive: boolean('is_active').default(true),
+  createdBy: uuid('created_by').references(() => members.id).notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+// === SUNDAY SERVICE SCHEMAS ===
+
+export const insertSundayServiceProgramSchema = createInsertSchema(sundayServicePrograms)
+export const selectSundayServiceProgramSchema = createSelectSchema(sundayServicePrograms)
+export type NewSundayServiceProgram = typeof sundayServicePrograms.$inferInsert
+export type SundayServiceProgram = typeof sundayServicePrograms.$inferSelect
+
+export const insertServiceSongSchema = createInsertSchema(serviceSongs)
+export const selectServiceSongSchema = createSelectSchema(serviceSongs)
+export type NewServiceSong = typeof serviceSongs.$inferInsert
+export type ServiceSong = typeof serviceSongs.$inferSelect
+
+export const insertServiceProgramSectionSchema = createInsertSchema(serviceProgramSections)
+export const selectServiceProgramSectionSchema = createSelectSchema(serviceProgramSections)
+export type NewServiceProgramSection = typeof serviceProgramSections.$inferInsert
+export type ServiceProgramSection = typeof serviceProgramSections.$inferSelect

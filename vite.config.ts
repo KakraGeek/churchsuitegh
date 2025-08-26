@@ -9,6 +9,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      register: true,                    // Ensure service worker registration
+      skipWaiting: true,                 // Activate new SW immediately
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
         runtimeCaching: [

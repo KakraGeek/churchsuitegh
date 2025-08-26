@@ -8,9 +8,8 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
-      register: true,                    // Ensure service worker registration
-      skipWaiting: true,                 // Activate new SW immediately
+      registerType: 'prompt',            // Vite-specific registration type
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
         runtimeCaching: [

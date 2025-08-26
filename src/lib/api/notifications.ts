@@ -311,7 +311,7 @@ export async function getMemberNotifications(memberId: string): Promise<ApiRespo
       .where(eq(notificationRecipients.memberId, memberId))
       .orderBy(desc(notifications.createdAt))
 
-    return createSuccessResponse(result.map(r => ({ ...r.notifications, ...r.notification_recipients })) as (Notification & NotificationRecipient)[])
+    return createSuccessResponse(result.map((r: { notifications: Notification; notification_recipients: NotificationRecipient }) => ({ ...r.notifications, ...r.notification_recipients })) as (Notification & NotificationRecipient)[])
   } catch (error) {
     console.error('Error fetching member notifications:', error)
     return createErrorResponse('Failed to fetch member notifications.')
@@ -630,7 +630,7 @@ async function createNotificationRecipients(
     // For now, just create recipients for all active members
     const allMembers = await db.select({ id: members.id }).from(members)
     
-    const recipients = allMembers.map(member => ({
+    const recipients = allMembers.map((member: { id: string }) => ({
       notificationId,
       memberId: member.id,
     }))

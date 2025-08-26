@@ -654,7 +654,7 @@ export async function getVolunteerAnalytics(): Promise<ApiResponse<VolunteerAnal
       .from(volunteerSkills)
       .groupBy(volunteerSkills.skillCategory)
 
-    const skillDistribution = skillResults.map(item => ({
+    const skillDistribution = skillResults.map((item: { skill: string; count: number }) => ({
       skill: item.skill,
       count: item.count
     }))
@@ -672,7 +672,7 @@ export async function getVolunteerAnalytics(): Promise<ApiResponse<VolunteerAnal
       .where(eq(ministryTeams.isActive, true))
       .groupBy(ministryTeams.id, ministryTeams.teamName)
 
-    const teamPerformance = teamResults.map(item => ({
+    const teamPerformance = teamResults.map((item: { team: string; memberCount: number; serviceCount: number }) => ({
       team: item.team,
       memberCount: item.memberCount,
       serviceCount: item.serviceCount
@@ -689,7 +689,7 @@ export async function getVolunteerAnalytics(): Promise<ApiResponse<VolunteerAnal
       .leftJoin(trainingRecords, eq(trainingPrograms.id, trainingRecords.programId))
       .groupBy(trainingPrograms.id, trainingPrograms.programName)
 
-    const trainingCompletion = trainingResults.map(item => ({
+    const trainingCompletion = trainingResults.map((item: { program: string; completed: number; required: number }) => ({
       program: item.program,
       completed: item.completed,
       required: item.required

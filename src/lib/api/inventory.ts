@@ -514,7 +514,7 @@ export async function getInventoryAnalytics(): Promise<ApiResponse<InventoryAnal
       totalValue: totalValueResult?.totalValue ? Number(totalValueResult.totalValue) : 0,
       categoryBreakdown,
       conditionBreakdown,
-      recentBorrowings: recentBorrowings.map(borrowing => ({
+      recentBorrowings: recentBorrowings.map((borrowing: { id: string; itemName: string; borrowerName: string; borrowedAt: Date; expectedReturnDate: Date | null; status: string }) => ({
         ...borrowing,
         borrowerName: borrowing.borrowerName as string,
         status: borrowing.status || 'unknown'

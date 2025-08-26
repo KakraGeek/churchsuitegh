@@ -221,11 +221,10 @@ export async function getAttendanceByDate(
       .where(and(...conditions))
       .orderBy(desc(attendance.serviceDate), asc(attendance.checkInTime))
 
-    const attendanceRecords = result.map(r => ({
+    const attendanceRecords = result.map((r: { attendance: Attendance; event?: ChurchEvent }) => ({
       ...r.attendance,
-      member: r.member,
       event: r.event,
-    })) as (Attendance & { member?: Member; event?: ChurchEvent })[]
+    })) as (Attendance & { event?: ChurchEvent })[]
 
     return createSuccessResponse(attendanceRecords)
   } catch (error) {
@@ -260,7 +259,7 @@ export async function getMemberAttendanceHistory(
       .orderBy(desc(attendance.serviceDate))
       .limit(limit)
 
-    const attendanceRecords = result.map(r => ({
+    const attendanceRecords = result.map((r: { attendance: Attendance; event?: ChurchEvent }) => ({
       ...r.attendance,
       event: r.event,
     })) as (Attendance & { event?: ChurchEvent })[]
@@ -531,7 +530,7 @@ export async function getAttendanceStats(): Promise<ApiResponse<AttendanceStats>
       .from(attendance)
       .where(gte(attendance.serviceDate, fourWeeksAgo))
 
-    const attendanceByService = serviceTypeResult.reduce((acc: Record<string, number>, item) => {
+    const attendanceByService = serviceTypeResult.reduce((acc: Record<string, number>, item: { serviceType: string; count: number }) => {
       acc[item.serviceType] = Number(item.count)
       return acc
     }, {})
@@ -557,7 +556,7 @@ export async function getAttendanceStats(): Promise<ApiResponse<AttendanceStats>
 export async function getActiveQRCodes(): Promise<ApiResponse<(AttendanceQRCode & { event?: ChurchEvent })[]>> {
   try {
     if (isDevelopmentMode) {
-      const activeQRCodes = mockQRCodes.filter(qr => qr.isActive)
+      const activeQRCodes = mockQRCodes.filter((qr: AttendanceQRCode) => qr.isActive)
       await new Promise(resolve => setTimeout(resolve, 200))
       return createSuccessResponse(activeQRCodes)
     }
@@ -572,7 +571,7 @@ export async function getActiveQRCodes(): Promise<ApiResponse<(AttendanceQRCode 
       .where(eq(attendanceQRCodes.isActive, true))
       .orderBy(desc(attendanceQRCodes.createdAt))
 
-    const qrCodes = result.map(r => ({
+    const qrCodes = result.map((r: { qrCode: AttendanceQRCode; event?: ChurchEvent }) => ({
       ...r.qrCode,
       event: r.event,
     })) as (AttendanceQRCode & { event?: ChurchEvent })[]
@@ -587,14 +586,14 @@ export async function getActiveQRCodes(): Promise<ApiResponse<(AttendanceQRCode 
 export async function getDisplayQRCodes(displayLocation?: string): Promise<ApiResponse<(AttendanceQRCode & { event?: ChurchEvent })[]>> {
   try {
     if (isDevelopmentMode) {
-      let displayQRs = mockQRCodes.filter(qr => 
+      let displayQRs = mockQRCodes.filter((qr: AttendanceQRCode) => 
         qr.isActive && 
         qr.displayOnScreens &&
         (!qr.expiresAt || new Date(qr.expiresAt) > new Date())
       )
 
       if (displayLocation) {
-        displayQRs = displayQRs.filter(qr => qr.displayLocation === displayLocation)
+        displayQRs = displayQRs.filter((qr: AttendanceQRCode) => qr.displayLocation === displayLocation)
       }
 
       await new Promise(resolve => setTimeout(resolve, 200))
@@ -622,11 +621,11 @@ export async function getDisplayQRCodes(displayLocation?: string): Promise<ApiRe
 
     // Filter out expired QR codes
     const qrCodes = result
-      .map(r => ({
+      .map((r: { qrCode: AttendanceQRCode; event?: ChurchEvent }) => ({
         ...r.qrCode,
         event: r.event,
       }))
-      .filter(qr => !qr.expiresAt || new Date(qr.expiresAt) > new Date()) as (AttendanceQRCode & { event?: ChurchEvent })[]
+      .filter((qr: AttendanceQRCode & { event?: ChurchEvent }) => !qr.expiresAt || new Date(qr.expiresAt) > new Date()) as (AttendanceQRCode & { event?: ChurchEvent })[]
 
     return createSuccessResponse(qrCodes)
   } catch (error) {

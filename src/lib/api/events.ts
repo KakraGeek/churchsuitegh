@@ -969,7 +969,7 @@ export async function getEventRegistrations(eventId: string): Promise<ApiRespons
       .where(eq(eventRegistrations.eventId, eventId))
       .orderBy(asc(eventRegistrations.registrationDate))
 
-    const registrationsWithMembers = result.map(row => ({
+    const registrationsWithMembers = result.map((row: { registration: EventRegistration; member: Member }) => ({
       ...row.registration,
       member: row.member
     })) as (EventRegistration & { member: Member })[]
@@ -1025,8 +1025,8 @@ export async function getEventRegistrationStats(eventId: string): Promise<ApiRes
       .where(eq(eventRegistrations.eventId, eventId))
       .groupBy(eventRegistrations.status)
 
-    const totalRegistered = registrationStats.find(stat => stat.status === 'registered')?.count || 0
-    const totalWaitlisted = registrationStats.find(stat => stat.status === 'waitlisted')?.count || 0
+    const totalRegistered = registrationStats.find((stat: { status: string; count: number }) => stat.status === 'registered')?.count || 0
+    const totalWaitlisted = registrationStats.find((stat: { status: string; count: number }) => stat.status === 'waitlisted')?.count || 0
     const maxAttendees = event[0].maxAttendees
     const availableSpots = maxAttendees ? Math.max(0, maxAttendees - totalRegistered) : null
 

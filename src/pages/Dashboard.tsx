@@ -55,7 +55,7 @@ export function Dashboard() {
             totalMembers: result.data.totalMembers,
             newThisMonth: 0, // Not available in new API
             activeMembers: result.data.activeMembers,
-            membersByRole: result.data.roleBreakdown.reduce((acc, item) => {
+            membersByRole: result.data.roleBreakdown.reduce((acc: Record<string, number>, item: { role: string | null; count: number }) => {
               if (item.role) acc[item.role] = item.count
               return acc
             }, {} as Record<string, number>)

@@ -518,7 +518,7 @@ export async function getChildrenByGuardian(guardianId: string): Promise<ApiResp
         eq(children.isActive, true)
       ))
 
-    const childrenList = guardianRelationships.map(rel => rel.child)
+    const childrenList = guardianRelationships.map((rel: { child: Child }) => rel.child)
     return createSuccessResponse(childrenList)
   } catch (error) {
     console.error('Error fetching children by guardian:', error)
@@ -649,8 +649,8 @@ export async function getChildrenAnalytics(startDate: Date, endDate: Date): Prom
       .where(sql`${childCheckIns.checkInTime} >= ${startDate}`)
       .groupBy(childCheckIns.serviceType)
 
-    const serviceTypeBreakdown = serviceTypeResults.map(item => ({
-      serviceType: item.serviceType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+    const serviceTypeBreakdown = serviceTypeResults.map((item: { serviceType: string; count: number }) => ({
+      serviceType: item.serviceType.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
       count: item.count
     }))
 
@@ -668,7 +668,7 @@ export async function getChildrenAnalytics(startDate: Date, endDate: Date): Prom
       .groupBy(sql`to_char(${children.createdAt}, 'YYYY-MM')`)
       .orderBy(sql`to_char(${children.createdAt}, 'YYYY-MM')`)
 
-    const monthlyTrends = monthlyResults.map(item => ({
+    const monthlyTrends = monthlyResults.map((item: { month: string; newChildren: number }) => ({
       month: new Date(item.month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'short' }),
       newChildren: item.newChildren,
       checkIns: 0 // Will be calculated separately
@@ -707,7 +707,7 @@ export async function getChildrenAnalytics(startDate: Date, endDate: Date): Prom
       { ageGroup: '15-17 years', count: 0 }
     ]
 
-    ageResults.forEach(child => {
+    ageResults.forEach((child: { dateOfBirth: Date }) => {
       const age = Math.floor((Date.now() - new Date(child.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
       if (age <= 2) ageDistribution[0].count++
       else if (age <= 5) ageDistribution[1].count++

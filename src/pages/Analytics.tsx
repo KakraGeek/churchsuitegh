@@ -184,8 +184,9 @@ export default function Analytics() {
       // Process member engagement
       const memberEngagement = [
         { status: 'Active Members', count: memberStats.activeMembers, percentage: 0 },
-        { status: 'Leaders', count: (memberStats.roleBreakdown.find(r => r.role === 'pastor')?.count || 0) + (memberStats.roleBreakdown.find(r => r.role === 'leader')?.count || 0), percentage: 0 },
-        { status: 'Visitors', count: memberStats.roleBreakdown.find(r => r.role === 'visitor')?.count || 0, percentage: 0 }
+        { status: 'Leaders', count: (memberStats.roleBreakdown.find((r: { role: string; count: number }) => r.role === 'pastor')?.count || 0) + (memberStats.roleBreakdown.find((r: { role: string; count: number }) => r.role === 'leader')?.count || 0), percentage: 0 },
+        { status: 'Members', count: memberStats.roleBreakdown.find((r: { role: string; count: number }) => r.role === 'member')?.count || 0, percentage: 0 },
+        { status: 'Visitors', count: memberStats.roleBreakdown.find((r: { role: string; count: number }) => r.role === 'visitor')?.count || 0, percentage: 0 }
       ].map(item => ({
         ...item,
         percentage: memberStats.totalMembers > 0 ? Math.round((item.count / memberStats.totalMembers) * 100) : 0

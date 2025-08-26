@@ -1,22 +1,37 @@
 import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn, SignIn, SignUp } from '@clerk/clerk-react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Suspense, lazy } from 'react'
 import { clerkConfig } from '@/lib/clerk'
-import { Dashboard } from '@/pages/Dashboard'
-import { LandingPage } from '@/pages/LandingPage'
-import Members from '@/pages/Members'
-import Events from '@/pages/Events'
-import Attendance from '@/pages/Attendance'
-import CheckIn from '@/pages/CheckIn'
-import DisplayQR from '@/pages/DisplayQR'
-import Analytics from '@/pages/Analytics'
-import Communications from '@/pages/Communications'
-import Notifications from '@/pages/Notifications'
-import Giving from '@/pages/Giving'
-import Children from '@/pages/Children'
-import Volunteers from '@/pages/Volunteers'
-import Inventory from '@/pages/Inventory'
-import SundayService from './pages/SundayService'
 import { Layout } from '@/components/Layout'
+
+// Dynamic imports for code splitting
+const Dashboard = lazy(() => import('@/pages/Dashboard').then(module => ({ default: module.Dashboard })))
+const LandingPage = lazy(() => import('@/pages/LandingPage').then(module => ({ default: module.LandingPage })))
+const Members = lazy(() => import('@/pages/Members'))
+const Events = lazy(() => import('@/pages/Events'))
+const Attendance = lazy(() => import('@/pages/Attendance'))
+const CheckIn = lazy(() => import('@/pages/CheckIn'))
+const DisplayQR = lazy(() => import('@/pages/DisplayQR'))
+const Analytics = lazy(() => import('@/pages/Analytics'))
+const Communications = lazy(() => import('@/pages/Communications'))
+const Notifications = lazy(() => import('@/pages/Notifications'))
+const Giving = lazy(() => import('@/pages/Giving'))
+const Children = lazy(() => import('@/pages/Children'))
+const Volunteers = lazy(() => import('@/pages/Volunteers'))
+const Inventory = lazy(() => import('@/pages/Inventory'))
+const SundayService = lazy(() => import('@/pages/SundayService'))
+
+// Loading component for Suspense fallback
+function PageLoader() {
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    </div>
+  )
+}
 
 if (!clerkConfig.publishableKey) {
   throw new Error('Missing Clerk Publishable Key. Please add VITE_CLERK_PUBLISHABLE_KEY to your .env.local file.')
@@ -82,128 +97,130 @@ function App() {
       }}
     >
       <Router>
-        <Routes>
-          {/* Clerk authentication routes */}
-          <Route path="/sign-in" element={<SignInPage />} />
-          <Route path="/sign-up" element={<SignUpPage />} />
-          
-          {/* Root path - show landing page for unauthenticated, dashboard for authenticated */}
-          <Route path="/" element={
-            <>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Clerk authentication routes */}
+            <Route path="/sign-in" element={<SignInPage />} />
+            <Route path="/sign-up" element={<SignUpPage />} />
+            
+            {/* Root path - show landing page for unauthenticated, dashboard for authenticated */}
+            <Route path="/" element={
+              <>
+                <SignedOut>
+                  <LandingPage />
+                </SignedOut>
+                <SignedIn>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </SignedIn>
+              </>
+            } />
+            
+            {/* Public routes - only for unauthenticated users */}
+            <Route path="/display/qr" element={
               <SignedOut>
-                <LandingPage />
+                <DisplayQR />
               </SignedOut>
+            } />
+            
+            {/* Protected routes - require authentication */}
+            <Route path="/dashboard" element={
               <SignedIn>
                 <Layout>
                   <Dashboard />
                 </Layout>
               </SignedIn>
-            </>
-          } />
-          
-          {/* Public routes - only for unauthenticated users */}
-          <Route path="/display/qr" element={
-            <SignedOut>
-              <DisplayQR />
-            </SignedOut>
-          } />
-          
-          {/* Protected routes - require authentication */}
-          <Route path="/dashboard" element={
-            <SignedIn>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/members" element={
-            <SignedIn>
-              <Layout>
-                <Members />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/events" element={
-            <SignedIn>
-              <Layout>
-                <Events />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/attendance" element={
-            <SignedIn>
-              <Layout>
-                <Attendance />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/analytics" element={
-            <SignedIn>
-              <Layout>
-                <Analytics />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/communications" element={
-            <SignedIn>
-              <Layout>
-                <Communications />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/notifications" element={
-            <SignedIn>
-              <Layout>
-                <Notifications />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/giving" element={
-            <SignedIn>
-              <Layout>
-                <Giving />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/checkin" element={
-            <SignedIn>
-              <Layout>
-                <CheckIn />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/children" element={
-            <SignedIn>
-              <Layout>
-                <Children />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/volunteers" element={
-            <SignedIn>
-              <Layout>
-                <Volunteers />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/inventory" element={
-            <SignedIn>
-              <Layout>
-                <Inventory />
-              </Layout>
-            </SignedIn>
-          } />
-          <Route path="/sunday-service" element={
-            <SignedIn>
-              <Layout>
-                <SundayService />
-              </Layout>
-            </SignedIn>
-          } />
-          
-          {/* Catch all other routes */}
-          <Route path="*" element={<RedirectToSignIn />} />
-        </Routes>
+            } />
+            <Route path="/members" element={
+              <SignedIn>
+                <Layout>
+                  <Members />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/events" element={
+              <SignedIn>
+                <Layout>
+                  <Events />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/attendance" element={
+              <SignedIn>
+                <Layout>
+                  <Attendance />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/analytics" element={
+              <SignedIn>
+                <Layout>
+                  <Analytics />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/communications" element={
+              <SignedIn>
+                <Layout>
+                  <Communications />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/notifications" element={
+              <SignedIn>
+                <Layout>
+                  <Notifications />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/giving" element={
+              <SignedIn>
+                <Layout>
+                  <Giving />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/checkin" element={
+              <SignedIn>
+                <Layout>
+                  <CheckIn />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/children" element={
+              <SignedIn>
+                <Layout>
+                  <Children />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/volunteers" element={
+              <SignedIn>
+                <Layout>
+                  <Volunteers />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/inventory" element={
+              <SignedIn>
+                <Layout>
+                  <Inventory />
+                </Layout>
+              </SignedIn>
+            } />
+            <Route path="/sunday-service" element={
+              <SignedIn>
+                <Layout>
+                  <SundayService />
+                </Layout>
+              </SignedIn>
+            } />
+            
+            {/* Catch all other routes */}
+            <Route path="*" element={<RedirectToSignIn />} />
+          </Routes>
+        </Suspense>
       </Router>
     </ClerkProvider>
   )

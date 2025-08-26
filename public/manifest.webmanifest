@@ -1,15 +1,12 @@
 {
   "name": "ChurchSuite Ghana",
   "short_name": "ChurchSuite",
-  "description": "Mobile-first church management for Ghana",
-  "theme_color": "#800020",
-  "background_color": "#ffffff",
-  "display": "standalone",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
-  "orientation": "portrait-primary",
-  "categories": ["business", "productivity", "utilities"],
-  "lang": "en-GH",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#800020",
   "icons": [
     {
       "src": "/pwa-192x192.png",

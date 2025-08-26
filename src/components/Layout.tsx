@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Menu, Users, Calendar, DollarSign, Home, X } from '@/lib/icons'
 import { churchIcons } from '@/lib/icons'
 import { NotificationBadge } from '@/components/NotificationBadge'
+import { PWAInstallButton } from '@/components/PWAInstallButton'
 // import { PWAInstallPrompt } from '@/components/PWAInstallPrompt'
 // import { PWAUpdateNotification } from '@/components/PWAUpdateNotification'
 // import { PWAStatus } from '@/components/PWAStatus'
@@ -289,11 +290,8 @@ export function Layout({ children }: LayoutProps) {
         </div>
       </footer>
       
-      {/* PWA Install Prompt - temporarily disabled */}
-      {/* <PWAInstallPrompt /> */}
-      
-      {/* PWA Update Notification - temporarily disabled */}
-      {/* <PWAUpdateNotification /> */}
+      {/* PWA Install Button */}
+      <PWAInstallButton />
     </div>
   )
 }
